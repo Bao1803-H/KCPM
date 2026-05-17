@@ -1,0 +1,51 @@
+# ==============================================
+# DOCKERFILE - BiCap Mobile Driver App (Expo)
+# ==============================================
+# Đây là Dockerfile cho Expo development server
+# Cho phép team dev có thể chạy mobile app từ Docker
+# và kết nối từ thiết bị thật hoặc emulator
+
+FROM node:20-alpine
+
+# Cài đặt các dependencies cần thiết
+RUN apk add --no-cache \
+    git \
+    python3 \
+    make \
+    g++ \
+    bash
+
+# Tạo thư mục làm việc
+WORKDIR /app
+
+# Copy package files trước để tận dụng Docker cache
+COPY package*.json ./
+
+# Cài đặt dependencies
+RUN npm install
+
+# Cài đặt Expo CLI globally
+RUN npm install -g expo-cli @expo/ngrok
+
+# Copy toàn bộ source code
+COPY . .
+
+# Expose ports cho Expo
+# 8081: Metro Bundler (React Native packager)
+# 19000: Expo Dev Server
+# 19001: Expo Packager
+# 19002: Expo DevTools (Web UI)
+EXPOSE 8081 19000 19001 19002
+
+# Set environment variables (override via docker-compose for host reachability)
+ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+ENV REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
+
+# Health check – Expo DevTools on 19002 (allow time for Metro to start)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
+    CMD wget -q -O /dev/null http://localhost:19002 || exit 1
+
+# Khởi động Expo với tunnel mode để có thể truy cập từ thiết bị thật
+# Sử dụng --tunnel nếu muốn kết nối qua internet
+# Sử dụng --lan nếu cùng mạng LAN
+CMD ["npx", "expo", "start", "--lan", "--port", "19000"]

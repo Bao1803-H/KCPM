@@ -1,0 +1,55 @@
+-- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
+--
+-- Host: localhost    Database: bicap_blockchain_db
+-- ------------------------------------------------------
+-- Server version	8.0.42
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `blockchain_records`
+--
+
+DROP TABLE IF EXISTS `blockchain_records`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `blockchain_records` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `batch_id` bigint NOT NULL,
+  `blockchain_tx` varchar(255) NOT NULL,
+  `created_at` datetime(6) DEFAULT NULL,
+  `data_hash` varchar(255) NOT NULL,
+  `network` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `blockchain_records`
+--
+
+LOCK TABLES `blockchain_records` WRITE;
+/*!40000 ALTER TABLE `blockchain_records` DISABLE KEYS */;
+INSERT INTO `blockchain_records` VALUES (1,101,'MOCK_TX_da242c242b','2025-12-21 22:36:11.964904','da242c242bba0f863542d4dd0e375e31ab7e86e14cc23a959f4172777a824a3c','VeChainThor'),(2,1,'MOCK_TX_2547443772','2025-12-27 22:30:14.231060','25474437725c6cbe1f91c76be14396d98d826bcef8ca89d3b098435249197a2a','VeChainThor'),(3,3,'MOCK_TX_fd4a152224','2026-01-01 22:13:38.656003','fd4a152224856d9cb810a5038fc6a394e6c4de3b29e9cf31f11ad97520de6fba','VeChainThor'),(4,1,'MOCK_TX_2e0de55352','2026-01-01 22:14:42.362035','2e0de55352fc7745871fe276cd75b8bb64faf509c8d80205711e03ab0c4b0be9','VeChainThor'),(5,2,'MOCK_TX_163035f3bd','2026-01-01 22:15:08.018505','163035f3bd2680fa2644e4b59b4cb9af9c3648e88984dd39095dff8a70aa0fba','VeChainThor'),(6,1,'MOCK_TX_ab0d0c8464','2026-01-02 10:46:22.770588','ab0d0c84640b6b6abca3cfd950c9efa34f59510c001805c56f6cf4112295a8d8','VeChainThor'),(7,1,'MOCK_TX_2e0de55352','2026-01-02 10:46:22.890975','2e0de55352fc7745871fe276cd75b8bb64faf509c8d80205711e03ab0c4b0be9','VeChainThor');
+/*!40000 ALTER TABLE `blockchain_records` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-01-12 21:23:55

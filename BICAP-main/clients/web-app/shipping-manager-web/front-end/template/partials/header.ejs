@@ -1,0 +1,22 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+  <div class="container">
+    <a class="navbar-brand" href="/">Shipping Manager</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/shipments">Quản lý Vận đơn</a>
+        </li>
+      </ul>
+      <span class="navbar-text text-white">
+        Xin chào, <%= typeof user !== 'undefined' ? user.username : 'Admin' %>
+      </span>
+      <a href="/logout" class="btn btn-outline-light ms-3 btn-sm">Đăng xuất</a>
+    </div>
+  </div>
+</nav>

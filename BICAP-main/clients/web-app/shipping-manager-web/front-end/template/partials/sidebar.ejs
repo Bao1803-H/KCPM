@@ -1,0 +1,35 @@
+<div class="d-flex flex-column flex-shrink-0 p-3 bg-white shadow vh-100" style="width: 250px; position: fixed; left: 0; top: 0;">
+    <a href="/dashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
+        <span class="fs-4 fw-bold text-success">BICAP Shipping</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item">
+            <a href="/orders" class="nav-link <%= path === '/orders' ? 'active' : 'link-dark' %>">
+                📦 Đơn hàng chờ
+            </a>
+        </li>
+        <li>
+            <a href="/shipments" class="nav-link <%= path === '/shipments' ? 'active' : 'link-dark' %>">
+                🚚 Quản lý Vận chuyển
+            </a>
+        </li>
+        <li><a href="/vehicles" class="nav-link <%= path === '/vehicles' ? 'active' : 'link-dark' %>">🚛 Quản lý Xe</a></li>
+        <li><a href="/drivers" class="nav-link <%= path === '/drivers' ? 'active' : 'link-dark' %>">👤 Quản lý Tài xế</a></li>
+        <li><a href="/reports" class="nav-link <%= path === '/reports' ? 'active' : 'link-dark' %>">📊 Báo cáo</a></li>
+        <li><a href="/notifications" class="nav-link <%= path === '/notifications' ? 'active' : 'link-dark' %>">📢 Gửi Thông báo</a></li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center link-dark text-decoration-none dropdown-toggle" id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false">
+            <strong><%= user.username %></strong>
+        </a>
+        <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser2">
+            <li>
+                <form action="/logout" method="POST">
+                    <button type="submit" class="dropdown-item">Đăng xuất</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,147 @@
+<form id="roleRequestForm">
+    <div class="mb-3">
+        <label class="form-label text-xs text-uppercase font-weight-bold text-muted">Bạn muốn trở thành?</label>
+        <select class="form-select" name="requestedRole" id="roleSelect" required>
+            <option value="">-- Chọn vai trò --</option>
+            <option value="FARM_OWNER">🌾 Chủ Trang Trại (Farmer) - Đăng bán nông sản</option>
+            <option value="SHIPPER">🚚 Nhà Vận Chuyển (Shipper) - Vận chuyển hàng hóa</option>
+            <option value="RETAILER">🏪 Nhà Bán Lẻ (Retailer) - Mua buôn phân phối</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label text-xs text-uppercase font-weight-bold text-muted">
+            Giấy tờ xác thực <span class="text-danger">*</span>
+        </label>
+        <p class="text-muted small mb-2">
+            Tải lên ảnh Giấy phép kinh doanh, CMND/CCCD hoặc giấy tờ chứng minh bạn đủ điều kiện.
+        </p>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('licenseInput').click()">
+            <i class="material-symbols-rounded text-muted mb-2" style="font-size: 3rem;">cloud_upload</i>
+            <p class="mb-1">Nhấn hoặc kéo thả file vào đây</p>
+            <small class="text-muted">PNG, JPG, PDF (tối đa 5MB)</small>
+            <input type="file" id="licenseInput" name="businessLicense" accept="image/*,.pdf" style="display: none;" onchange="previewFile(this)">
+        </div>
+        <div id="filePreview" class="mt-3" style="display: none;">
+            <div class="d-flex align-items-center p-2 bg-light rounded">
+                <i class="material-symbols-rounded text-success me-2">description</i>
+                <span id="fileName" class="flex-grow-1 text-sm"></span>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile()">
+                    <i class="material-symbols-rounded text-sm">close</i>
+                </button>
+            </div>
+            <img id="imagePreview" src="" class="img-fluid mt-2 rounded" style="max-height: 200px; display: none;">
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label text-xs text-uppercase font-weight-bold text-muted">Ghi chú (tùy chọn)</label>
+        <textarea class="form-control" name="note" rows="2" placeholder="Thêm thông tin bổ sung nếu cần..."></textarea>
+    </div>
+
+    <div class="alert alert-info border-0 small" role="alert" style="border-radius: 0.75rem;">
+        <i class="material-symbols-rounded align-middle me-1">info</i>
+        Yêu cầu sẽ được Admin xem xét trong vòng 24-48 giờ. Kết quả sẽ được thông báo qua email.
+    </div>
+
+    <button type="submit" class="btn btn-bicap w-100">
+        <i class="material-symbols-rounded me-1">send</i> Gửi yêu cầu xét duyệt
+    </button>
+</form>
+
+<script>
+    // Drag & Drop
+    const uploadZone = document.getElementById('uploadZone');
+    
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            document.getElementById('licenseInput').files = e.dataTransfer.files;
+            previewFile(document.getElementById('licenseInput'));
+        }
+    });
+
+    // Preview file
+    function previewFile(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('filePreview').style.display = 'block';
+            uploadZone.style.display = 'none';
+            
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('imagePreview').style.display = 'none';
+            }
+        }
+    }
+
+    function removeFile() {
+        document.getElementById('licenseInput').value = '';
+        document.getElementById('filePreview').style.display = 'none';
+        document.getElementById('uploadZone').style.display = 'block';
+    }
+
+    // Submit form
+    document.getElementById('roleRequestForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('licenseInput');
+        if (fileInput.files.length === 0) {
+            alert('Vui lòng tải lên giấy tờ xác thực!');
+            return;
+        }
+        
+        const roleSelect = document.getElementById('roleSelect');
+        if (!roleSelect.value) {
+            alert('Vui lòng chọn vai trò muốn đăng ký!');
+            return;
+        }
+        
+        // Convert file to base64
+        const reader = new FileReader();
+        reader.readAsDataURL(fileInput.files[0]);
+        reader.onload = async function() {
+            const payload = {
+                requestedRole: roleSelect.value,
+                documentUrls: reader.result // Base64 string
+            };
+            
+            try {
+                const res = await fetch('/api/v1/role-requests/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                if (res.ok) {
+                    alert('Đã gửi yêu cầu thành công! Vui lòng chờ Admin xét duyệt.');
+                    window.location.reload();
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể gửi yêu cầu'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Lỗi kết nối server');
+            }
+        };
+    });
+</script>

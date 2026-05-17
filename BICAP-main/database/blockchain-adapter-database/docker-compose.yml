@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  blockchain-db:
+    image: mysql:8.0
+    container_name: blockchain-adapter-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bicap_blockchain_db
+    ports:
+      - "4308:3306"
+    volumes:
+      - ./bicap_blockchain_db_trace_logs.sql:/docker-entrypoint-initdb.d/01_trace_logs.sql
+      - ./bicap_blockchain_db_blockchain_records.sql:/docker-entrypoint-initdb.d/02_blockchain_records.sql
+    networks:
+      - bicap-net
+
+networks:
+  bicap-net:
+    driver: bridge

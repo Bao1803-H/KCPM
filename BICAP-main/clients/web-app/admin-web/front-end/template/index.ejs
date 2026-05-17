@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BICAP Admin</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fc; margin: 0; padding: 0; }
+        .navbar { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-weight: bold; font-size: 1.5rem; color: #4e73df; text-decoration: none; }
+        .nav-links a { text-decoration: none; color: #555; margin-left: 20px; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: #4e73df; }
+        .btn-primary { background-color: #4e73df; color: white !important; padding: 8px 20px; border-radius: 20px; }
+        .btn-primary:hover { background-color: #2e59d9; }
+        
+        .hero { height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: linear-gradient(180deg, #f8f9fc 0%, #e3e6f0 100%); }
+        .hero h1 { font-size: 3rem; color: #2d3748; margin-bottom: 10px; }
+        .hero p { font-size: 1.2rem; color: #718096; max-width: 600px; margin-bottom: 40px; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: inline-block; min-width: 300px; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/" class="brand">BICAP Admin</a>
+        <div class="nav-links">
+            <% if (locals.user) { %>
+                <a href="/dashboard" class="btn-primary">Go to Dashboard</a>
+            <% } else { %>
+                <a href="/login" class="btn-primary">Login</a>
+            <% } %>
+        </div>
+    </div>
+
+    <div class="hero">
+        <h1>Administration Portal</h1>
+        <p>Secure access for system administrators to manage users, roles, and system configurations.</p>
+        
+        <div class="card">
+            <% if (locals.user) { %>
+                <h3 style="margin-top:0; color:#4e73df;">Welcome Back</h3>
+                <p style="font-size:1rem; margin-bottom:20px;">Logged in as <strong><%= user.username %></strong></p>
+                <a href="/dashboard" style="display:inline-block; text-decoration:none; background:#4e73df; color:white; padding:10px 25px; border-radius:6px;">Access Dashboard</a>
+            <% } else { %>
+                <p style="font-size:1rem;">Please log in to continue.</p>
+                <a href="/login" style="display:inline-block; text-decoration:none; background:#4e73df; color:white; padding:10px 25px; border-radius:6px;">Login Now</a>
+            <% } %>
+        </div>
+    </div>
+
+</body>
+</html>

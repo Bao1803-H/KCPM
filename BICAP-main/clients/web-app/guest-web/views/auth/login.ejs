@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+        .login-image-bg {
+            background: linear-gradient(135deg, rgba(46, 125, 50, 0.8), rgba(27, 94, 32, 0.9)), url('https://images.unsplash.com/photo-1595855709915-d7b594b91763?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-right: none;
+        }
+        .form-control {
+            border-left: none;
+        }
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #ced4da;
+        }
+        .input-group:focus-within {
+            box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+            border-radius: 0.375rem;
+        }
+        .input-group:focus-within .input-group-text, 
+        .input-group:focus-within .form-control {
+            border-color: #4CAF50;
+        }
+    </style>
+</head>
+<body class="login-page d-flex align-items-center justify-content-center py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                <div class="card login-card shadow-lg border-0 overflow-hidden">
+                    <div class="row g-0">
+                        <div class="col-lg-5 d-none d-lg-flex flex-column justify-content-center align-items-center text-white p-5 login-image-bg">
+                            <div class="text-center position-relative z-2">
+                                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm" style="width: 80px; height: 80px;">
+                                    <span style="font-size: 3rem;">🌱</span>
+                                </div>
+                                <h2 class="fw-bold mb-2">BiCap Farm</h2>
+                                <p class="opacity-75">Nền tảng nông nghiệp sạch<br/>ứng dụng Blockchain</p>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-7 bg-white">
+                            <div class="card-body p-4 p-md-5">
+                                <div class="text-center mb-4">
+                                    <h4 class="fw-bold text-dark">Đăng nhập</h4>
+                                    <p class="text-muted small">Chào mừng bạn quay trở lại!</p>
+                                </div>
+
+                                <% if (typeof error !== 'undefined' && error) { %>
+                                    <div class="alert alert-danger d-flex align-items-center p-2 mb-4" role="alert">
+                                        <i class="material-symbols-rounded me-2">error</i>
+                                        <small><%= error %></small>
+                                    </div>
+                                <% } %>
+
+                                <form action="/login" method="POST">
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted fw-bold">EMAIL</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text text-muted"><i class="material-symbols-rounded">mail</i></span>
+                                            <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted fw-bold">MẬT KHẨU</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text text-muted"><i class="material-symbols-rounded">lock</i></span>
+                                            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                                            <label class="form-check-label small text-muted" for="remember">Ghi nhớ tôi</label>
+                                        </div>
+                                        <a href="#" class="text-success small fw-bold text-decoration-none">Quên mật khẩu?</a>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-bicap w-100 py-2 fs-6 shadow-sm">
+                                        Đăng nhập
+                                    </button>
+                                </form>
+
+                                <div class="position-relative text-center my-4">
+                                    <hr class="text-muted opacity-25">
+                                    <span class="position-absolute top-50 start-50 translate-middle px-3 bg-white text-muted small">hoặc</span>
+                                </div>
+
+                                <div class="text-center">
+                                    <p class="mb-0 text-muted small">Chưa có tài khoản? <a href="/register" class="text-success fw-bold text-decoration-none">Đăng ký ngay</a></p>
+                                </div>
+
+                                <div class="mt-4 p-3 bg-light rounded text-center border border-dashed">
+                                    <small class="text-muted d-block">
+                                        💡 <strong>Demo Account:</strong>
+                                    </small>
+                                    <code class="text-dark">admin@bicap.vn</code> / <code class="text-dark">admin123</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="/" class="text-white text-decoration-none opacity-75 hover-opacity-100">
+                        <i class="material-symbols-rounded align-middle fs-5">arrow_back</i> Quay về trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hồ sơ cá nhân - BiCap</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="bg-gray-100">
+
+    <%- include('partials/header') %>
+
+    <div class="container py-4" style="margin-top: 70px;">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-success text-white d-flex align-items-center justify-content-center mx-auto mb-3" 
+                             style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem; font-weight: bold;">
+                            <%= typeof user !== 'undefined' && user ? user.username.charAt(0).toUpperCase() : 'U' %>
+                        </div>
+                        <h5 class="font-weight-bold mb-1"><%= typeof user !== 'undefined' && user ? user.username : 'Người dùng' %></h5>
+                        <p class="text-muted small mb-3"><%= typeof user !== 'undefined' && user ? user.email : '' %></p>
+                        <span class="badge bg-success-subtle text-success">
+                            <%= typeof user !== 'undefined' && user && user.role ? user.role : 'GUEST' %>
+                        </span>
+                    </div>
+                    <hr class="m-0">
+                    <div class="p-3">
+                        <nav class="nav flex-column">
+                            <a class="nav-link text-dark d-flex align-items-center py-2" href="/">
+                                🏠 Trang chủ
+                            </a>
+                            <a class="nav-link text-dark d-flex align-items-center py-2" href="/market">
+                                🏪 Sàn giao dịch
+                            </a>
+                            <a class="nav-link text-success font-weight-bold d-flex align-items-center py-2" href="/profile">
+                                👤 Hồ sơ cá nhân
+                            </a>
+                            <a class="nav-link text-danger d-flex align-items-center py-2" href="/auth/logout">
+                                🚪 Đăng xuất
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <!-- Profile Header -->
+                <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #E8F5E9, #C8E6C9);">
+                    <div class="card-body p-4">
+                        <h4 class="font-weight-bold mb-1">👤 Hồ Sơ Cá Nhân</h4>
+                        <p class="text-muted mb-0">Quản lý thông tin tài khoản và yêu cầu vai trò</p>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm text-center p-3">
+                            <span style="font-size: 2rem;">📦</span>
+                            <h4 class="font-weight-bold text-success mb-0">0</h4>
+                            <small class="text-muted">Đơn hàng</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm text-center p-3">
+                            <span style="font-size: 2rem;">📱</span>
+                            <h4 class="font-weight-bold text-success mb-0">0</h4>
+                            <small class="text-muted">Lần truy xuất</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm text-center p-3">
+                            <span style="font-size: 2rem;">⭐</span>
+                            <h4 class="font-weight-bold text-success mb-0">0</h4>
+                            <small class="text-muted">Đánh giá</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Info Form -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0 font-weight-bold">📋 Thông tin cá nhân</h5>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Họ và tên</label>
+                                    <input type="text" class="form-control bg-gray-100 border-0" 
+                                           value="<%= typeof user !== 'undefined' && user ? user.fullName || '' : '' %>" 
+                                           placeholder="Nhập họ và tên">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Email</label>
+                                    <input type="email" class="form-control bg-gray-100 border-0" 
+                                           value="<%= typeof user !== 'undefined' && user ? user.email || '' : '' %>" 
+                                           readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Số điện thoại</label>
+                                    <input type="tel" class="form-control bg-gray-100 border-0" 
+                                           value="<%= typeof user !== 'undefined' && user ? user.phone || '' : '' %>" 
+                                           placeholder="Nhập số điện thoại">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Địa chỉ</label>
+                                    <input type="text" class="form-control bg-gray-100 border-0" 
+                                           value="<%= typeof user !== 'undefined' && user ? user.address || '' : '' %>" 
+                                           placeholder="Nhập địa chỉ">
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-bicap">💾 Lưu thay đổi</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Role Request Form -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0 font-weight-bold">📝 Yêu cầu vai trò</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info border-0 d-flex">
+                            <span style="font-size: 1.5rem; margin-right: 12px;">💡</span>
+                            <div>
+                                <strong>Bạn muốn trở thành đối tác?</strong>
+                                <p class="mb-0 small">Đăng ký vai trò Nông dân, Nhà bán lẻ hoặc Đơn vị vận chuyển để tham gia hệ sinh thái BiCap.</p>
+                            </div>
+                        </div>
+                        
+                        <form action="/api/role-request" method="POST" enctype="multipart/form-data">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Vai trò muốn đăng ký</label>
+                                    <select name="requestedRole" class="form-control bg-gray-100 border-0" required>
+                                        <option value="">-- Chọn vai trò --</option>
+                                        <option value="FARMER">🌾 Nông dân / Chủ trang trại</option>
+                                        <option value="RETAILER">🏪 Nhà bán lẻ</option>
+                                        <option value="SHIPPER">🚚 Đơn vị vận chuyển</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Tên doanh nghiệp / Trang trại</label>
+                                    <input type="text" name="businessName" class="form-control bg-gray-100 border-0" 
+                                           placeholder="Nhập tên doanh nghiệp" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-muted small">Mô tả hoạt động</label>
+                                    <textarea name="description" class="form-control bg-gray-100 border-0" rows="3" 
+                                              placeholder="Mô tả ngắn về hoạt động kinh doanh của bạn..." required></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-muted small">Giấy phép kinh doanh (PDF, JPG, PNG)</label>
+                                    <div class="border-dashed rounded p-4 text-center bg-gray-100" 
+                                         style="border: 2px dashed #dee2e6; cursor: pointer;"
+                                         onclick="document.getElementById('licenseFile').click()">
+                                        <span style="font-size: 2rem;">📄</span>
+                                        <p class="mb-0 text-muted small">Kéo thả file hoặc click để chọn</p>
+                                        <input type="file" id="licenseFile" name="license" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-bicap">📤 Gửi yêu cầu</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

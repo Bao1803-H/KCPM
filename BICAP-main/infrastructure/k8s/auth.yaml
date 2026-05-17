@@ -1,0 +1,156 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth-db-secret
+stringData:
+  MYSQL_ROOT_PASSWORD: "root"
+  MYSQL_DATABASE: "auth_db"
+  MYSQL_USER: "user"
+  MYSQL_PASSWORD: "password"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth-app-secret
+stringData:
+  JWT_SECRET: "YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg=="
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: auth-db-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-database-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-database
+  template:
+    metadata:
+      labels:
+        app: auth-database
+    spec:
+      containers:
+      - name: mysql
+        image: nguyenledaiphi/bicap:auth-database
+        ports:
+        - containerPort: 3306
+        envFrom:
+        - secretRef:
+            name: auth-db-secret
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: auth-db-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-auth
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: auth-database
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+      - name: auth-service
+        image: nguyenledaiphi/bicap:auth-service
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql-auth:3306/auth_db"
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: auth-db-secret
+              key: MYSQL_USER
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: auth-db-secret
+              key: MYSQL_PASSWORD
+        - name: bicap.app.jwtSecret
+          valueFrom:
+            secretKeyRef:
+              name: auth-app-secret
+              key: JWT_SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: auth-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retailer-frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: retailer-frontend
+  template:
+    metadata:
+      labels:
+        app: retailer-frontend
+    spec:
+      containers:
+      - name: retailer-frontend
+        # NOTE: YOU MUST REPLACE THIS WITH THE DOCKER IMAGE FOR YOUR NODE.JS APP
+        image: nguyenledaiphi/bicap:retailer-frontend
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3001
+        env:
+        # Crucial: Use the internal Kubernetes Service name for the backend
+        - name: AUTH_SERVICE_URL
+          value: "http://auth-service/api/auth"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: retailer-frontend-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 3001
+  selector:
+    app: retailer-frontend

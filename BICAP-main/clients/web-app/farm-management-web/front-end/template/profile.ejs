@@ -1,0 +1,450 @@
+<!-- profile.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="apple-touch-icon" sizes="76x76" href="/assets/img/apple-icon.png">
+  <link rel="icon" type="image/png" href="/assets/img/favicon.png">
+  <title>Farm Manager - Profile</title>
+
+  <!-- Fonts and Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
+  <link href="/assets/css/nucleo-icons.css" rel="stylesheet" />
+  <link href="/assets/css/nucleo-svg.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link id="pagestyle" href="/assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+  <style>
+    /* Navigation Styles */
+    .sidenav {
+      min-height: 100vh;
+    }
+    
+    .sidenav .navbar-nav {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .sidenav .nav-item {
+      margin-bottom: 4px;
+    }
+    
+    .sidenav .nav-link {
+      display: flex !important;
+      align-items: center;
+      padding: 12px 16px;
+      margin: 6px 12px;
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #344767 !important;
+      font-weight: 500;
+      position: relative;
+      text-decoration: none;
+      width: auto;
+      min-height: 44px;
+    }
+    
+    .sidenav .nav-link i {
+      font-size: 20px !important;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+    
+    .sidenav .nav-link .nav-link-text {
+      font-size: 14px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    
+    /* Inactive nav link hover */
+    .sidenav .nav-link:not(.active):hover {
+      background-color: rgba(67, 160, 71, 0.08) !important;
+      color: #43A047 !important;
+      transform: translateX(4px);
+    }
+    
+    .sidenav .nav-link:not(.active):hover i {
+      opacity: 1;
+      color: #43A047;
+    }
+    
+    /* Active nav link */
+    .sidenav .nav-link.active {
+      background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
+    }
+    
+    .sidenav .nav-link.active i {
+      opacity: 1;
+      color: #ffffff !important;
+    }
+    
+    .sidenav .nav-link.active .nav-link-text {
+      font-weight: 600;
+      color: #ffffff !important;
+    }
+    
+    /* Account section divider */
+    .sidenav .nav-item.mt-3 h6 {
+      padding: 8px 16px;
+      margin: 16px 12px 8px 12px;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      color: #7b809a;
+      font-weight: 600;
+    }
+    
+    /* Ensure sidenav is visible */
+    #sidenav-collapse-main {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    #sidenav-collapse-main.show {
+      display: block !important;
+    }
+    
+    .sidenav .navbar-nav {
+      display: block !important;
+    }
+    
+    .sidenav-footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding-bottom: 20px;
+    }
+    
+    /* Make sure all nav items are visible */
+    .sidenav .nav-item {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    /* Fix for Material Dashboard override */
+    .sidenav .nav-link.text-dark {
+      color: #344767 !important;
+    }
+  </style>
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+  <!-- Sidenav -->
+  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-radius-lg fixed-start ms-2  bg-white my-2" id="sidenav-main">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-dark opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand px-4 py-3 m-0" href="/dashboard">
+        <div class="d-flex align-items-center">
+          <i class="material-symbols-rounded text-success me-2" style="font-size: 28px;">agriculture</i>
+          <span class="ms-1 text-sm text-dark font-weight-bolder">BICAP Farm</span>
+        </div>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0 mb-2">
+    <div class="collapse navbar-collapse w-auto show" id="sidenav-collapse-main" style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+      <ul class="navbar-nav" style="display: block !important; visibility: visible !important;">
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard">
+            <i class="material-symbols-rounded">dashboard</i>
+            <span class="nav-link-text">Dashboard</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/products">
+            <i class="material-symbols-rounded">storefront</i>
+            <span class="nav-link-text">Product Management</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/shipping">
+            <i class="material-symbols-rounded">local_shipping</i>
+            <span class="nav-link-text">Shipping</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/season-monitor">
+            <i class="material-symbols-rounded">grass</i>
+            <span class="nav-link-text">Season Monitor</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/farm-info">
+            <i class="material-symbols-rounded">agriculture</i>
+            <span class="nav-link-text">Farm Information</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/notifications">
+            <i class="material-symbols-rounded">notifications</i>
+            <span class="nav-link-text">Notifications</span>
+          </a>
+        </li>
+
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs text-dark font-weight-bolder opacity-5">Account</h6>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link active" href="/profile">
+            <i class="material-symbols-rounded">person</i>
+            <span class="nav-link-text">Profile</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/logout" id="logout-button">
+            <i class="material-symbols-rounded">logout</i>
+            <span class="nav-link-text">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="sidenav-footer position-absolute w-100 bottom-0">
+      <div class="mx-3 mb-3">
+        <div class="card bg-gradient-success shadow-sm" style="border-radius: 15px; background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%);">
+          <div class="card-body p-3 text-center text-white">
+            <i class="material-symbols-rounded mb-2" style="font-size: 32px;">agriculture</i>
+            <p class="text-sm mb-0 font-weight-bold">BICAP Farm</p>
+            <p class="text-xs mb-0 opacity-8">Management System</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <!-- Navbar -->
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-3 shadow-none border-radius-xl" id="navbarBlur" data-scroll="true">
+      <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Pages</a></li>
+            <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Profile</li>
+          </ol>
+        </nav>
+      </div>
+    </nav>
+
+    <div class="container-fluid px-2 px-md-4 py-4">
+      <!-- Header -->
+      <div class="page-header min-height-300 border-radius-xl mt-4" 
+           style="background-image: url('https://images.unsplash.com/photo-1531512073830-ba890ca4eba2?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');">
+        <span class="mask bg-gradient-dark opacity-6"></span>
+      </div>
+
+      <div class="card card-body mx-2 mx-md-2 mt-n6">
+        <div class="row gx-4 mb-4">
+          <div class="col-auto">
+            <div class="avatar avatar-xl position-relative">
+              <img src="<%= user.avatar || '/assets/img/bruce-mars.jpg' %>" 
+                   alt="profile_image" 
+                   class="w-100 border-radius-lg shadow-sm" 
+                   id="avatar-preview">
+            </div>
+          </div>
+          <div class="col-auto my-auto">
+            <div class="h-100">
+              <h5 class="mb-1"><%= user.username || 'User' %></h5>
+              <p class="mb-0 font-weight-light text-sm"><%= user.email || 'No email' %></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Profile Update Form -->
+          <div class="col-12 col-xl-8">
+            <div class="card card-plain h-100">
+              <div class="card-header pb-0 p-3">
+                <h6 class="mb-0">Update Profile Information</h6>
+              </div>
+              <div class="card-body p-3">
+                <!-- Messages -->
+                <div id="profile-success" class="alert alert-success" role="alert" style="display: none;"></div>
+                <div id="profile-error" class="alert alert-danger" role="alert" style="display: none;"></div>
+
+                <form id="update-profile-form" enctype="multipart/form-data">
+                  <div class="mb-3">
+                    <label for="businessLicenseUpload" class="form-label">Business License Images</label>
+                    <input class="form-control" type="file" id="businessLicenseUpload" name="businessLicense" multiple accept="image/*">
+                  </div>
+                  <div id="licenseImagesPreview" class="row mt-3">
+                    <!-- Existing images append here -->
+                  </div>
+
+                  <div class="input-group input-group-outline mb-3 <%= user.address ? 'is-filled' : '' %>">
+                    <label class="form-label">Address</label>
+                    <input type="text" class="form-control" name="address" id="address" 
+                           value="<%= user.address || '' %>">
+                  </div>
+
+                  <div class="input-group input-group-outline mb-3">
+                    <label class="form-label"></label>
+                    <input type="file" class="form-control" name="avatar" id="avatar" accept="image/*">
+                  </div>
+
+                  <div class="text-center">
+                    <button type="submit" class="btn bg-gradient-dark w-100 my-4 mb-2" id="submit-btn">
+                      Update Profile
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Create Event (unchanged) -->
+          <div class="col-12 col-xl-4">
+            <div class="card card-plain h-100">
+              <div class="card-header pb-0 p-3">
+                <h6 class="mb-0">Create Event</h6>
+              </div>
+              <div class="card-body p-3">
+                <form role="form">
+                  <div class="input-group input-group-outline mb-3">
+                    <label class="form-label">Event Name</label>
+                    <input type="text" class="form-control">
+                  </div>
+                  <div class="input-group input-group-outline mb-3">
+                    <input type="date" class="form-control">
+                  </div>
+                  <div class="input-group input-group-outline mb-3">
+                    <select class="form-control" style="border: 1px solid #d2d6da; border-radius: 0.375rem; padding: 0.5rem;">
+                      <option value="" selected disabled>Select Type</option>
+                      <option value="sowing">Sowing</option>
+                      <option value="harvesting">Harvesting</option>
+                      <option value="fertilizing">Fertilizing</option>
+                    </select>
+                  </div>
+                  <div class="text-center">
+                    <button type="button" class="btn bg-gradient-primary w-100 my-4 mb-2">Create Event</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="/assets/js/core/popper.min.js"></script>
+  <script src="/assets/js/core/bootstrap.min.js"></script>
+  <script src="/assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="/assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="/assets/js/material-dashboard.min.js?v=3.2.0"></script>
+
+  <!-- Our single profile update script -->
+  <script src="/assets/js/update-profile.js"></script>
+  <script id="existingBusinessLicensesData" type="application/json"><%- JSON.stringify(user.businessLicenses || []) %></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const licenseImagesPreview = document.getElementById('licenseImagesPreview');
+
+      // Display existing business license images
+      const existingBusinessLicenses = JSON.parse(document.getElementById('existingBusinessLicensesData')?.textContent || '[]');
+      
+      if (existingBusinessLicenses.length > 0 && licenseImagesPreview) {
+        existingBusinessLicenses.forEach(license => {
+          // Determine the source: prefer Base64 if available, otherwise use path
+          let imgSrc = license.licensePath;
+          if (license.licenseBase64 && !imgSrc.startsWith('data:')) {
+             imgSrc = `data:image/png;base64,${license.licenseBase64}`;
+          }
+
+          if (imgSrc) {
+            const imgCol = document.createElement('div');
+            imgCol.classList.add('col-md-3', 'col-sm-6', 'mb-3');
+
+            const img = document.createElement('img');
+            img.src = imgSrc;
+            img.alt = 'Business License';
+            img.classList.add('img-fluid', 'rounded', 'shadow-sm');
+            img.style.maxHeight = '150px';
+            img.style.objectFit = 'cover';
+            
+            img.onerror = function() { 
+                this.src = '/assets/img/image_placeholder.jpg'; // Ensure this asset exists or use a generic placeholder
+                console.error('Failed to load image'); 
+            };
+
+            imgCol.appendChild(img);
+            licenseImagesPreview.appendChild(imgCol);
+          }
+        });
+      }
+    });
+  </script>
+
+  <!-- Logout -->
+  <script>
+    // Immediate execution to show navigation
+    (function() {
+      function showNavigation() {
+        const sidenavCollapse = document.getElementById('sidenav-collapse-main');
+        if (sidenavCollapse) {
+          sidenavCollapse.classList.add('show');
+          sidenavCollapse.style.display = 'block';
+          sidenavCollapse.style.visibility = 'visible';
+          sidenavCollapse.style.opacity = '1';
+        }
+        
+        const navItems = document.querySelectorAll('.sidenav .nav-item');
+        navItems.forEach(item => {
+          item.style.display = 'block';
+          item.style.visibility = 'visible';
+          item.style.opacity = '1';
+        });
+        
+        const navLinks = document.querySelectorAll('.sidenav .nav-link');
+        navLinks.forEach(link => {
+          link.style.display = 'flex';
+          link.style.visibility = 'visible';
+          link.style.opacity = '1';
+        });
+      }
+      
+      // Run immediately
+      showNavigation();
+      
+      // Also run on DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', function() {
+        showNavigation();
+        
+        document.getElementById('logout-button')?.addEventListener('click', async (e) => {
+          e.preventDefault();
+          try {
+            await fetch('/logout', { method: 'POST' });
+          } finally {
+            window.location.href = '/login';
+          }
+        });
+      });
+      
+      // Also run after delays
+      setTimeout(showNavigation, 100);
+      setTimeout(showNavigation, 500);
+    })();
+  </script>
+</body>
+</html>

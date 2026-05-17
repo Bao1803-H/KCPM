@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f8d7da; color: #721c24; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .error-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+        h1 { color: #c9302c; }
+        a { color: #4e73df; text-decoration: none; margin-top: 20px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="error-box">
+        <h1>Error</h1>
+        <p><%= message || 'Đã xảy ra lỗi. Vui lòng thử lại.' %></p>
+        <a href="/">Quay về trang chủ</a>
+    </div>
+</body>
+</html>

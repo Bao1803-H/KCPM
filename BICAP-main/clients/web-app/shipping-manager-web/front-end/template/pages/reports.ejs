@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo & Thống kê - Shipping Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="d-flex">
+        <%- include('../partials/sidebar') %>
+        
+        <div class="flex-grow-1 p-4" style="margin-left: 250px; background-color: #f8f9fa; min-height: 100vh;">
+            <h2 class="mb-4">📊 Báo cáo & Thống kê</h2>
+
+            <% if (typeof query !== 'undefined' && query.success) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <%= query.success %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+            <% if (typeof query !== 'undefined' && query.error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <%= query.error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+
+            <!-- Thống kê nhanh -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Thống kê nhanh</h5>
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 border bg-light rounded">
+                                <h3 class="text-primary"><%= report.totalShipments || 0 %></h3>
+                                <p class="mb-0">Tổng chuyến hàng</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 border bg-light rounded">
+                                <h3 class="text-success"><%= report.totalDrivers || 0 %></h3>
+                                <p class="mb-0">Tổng số tài xế</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 border bg-light rounded">
+                                <h3 class="text-info"><%= report.totalVehicles || 0 %></h3>
+                                <p class="mb-0">Tổng số xe</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 border bg-light rounded">
+                                <h3 class="text-warning"><%= pendingDriverReports && pendingDriverReports.length ? pendingDriverReports.length : 0 %></h3>
+                                <p class="mb-0">Báo cáo tài xế chờ xử lý</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gửi báo cáo cho Admin -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Gửi báo cáo cho Admin</h5>
+                    <form action="/reports/admin" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Tiêu đề báo cáo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="title" placeholder="VD: Báo cáo vận chuyển tháng 10" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nội dung chi tiết <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="description" rows="5" placeholder="Nhập nội dung báo cáo..." required></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Loại báo cáo</label>
+                                <select class="form-select" name="reportType">
+                                    <option value="GENERAL" selected>Chung</option>
+                                    <option value="SUMMARY">Tổng hợp</option>
+                                    <option value="ISSUE">Vấn đề</option>
+                                    <option value="REQUEST">Yêu cầu</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Mức độ ưu tiên</label>
+                                <select class="form-select" name="priority">
+                                    <option value="LOW">Thấp</option>
+                                    <option value="MEDIUM" selected>Trung bình</option>
+                                    <option value="HIGH">Cao</option>
+                                    <option value="URGENT">Khẩn cấp</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Gửi báo cáo</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Báo cáo từ Tài xế -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Báo cáo từ Tài xế</h5>
+                    <% if (driverReports && driverReports.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tài xế</th>
+                                        <th>Tiêu đề</th>
+                                        <th>Nội dung</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày gửi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% driverReports.forEach(function(dr) { %>
+                                        <tr>
+                                            <td><%= dr.id %></td>
+                                            <td><%= dr.driver ? dr.driver.name : 'N/A' %></td>
+                                            <td><%= dr.title %></td>
+                                            <td><%= dr.description || 'N/A' %></td>
+                                            <td>
+                                                <% 
+                                                    let statusClass = 'secondary';
+                                                    if (dr.status === 'PENDING') statusClass = 'warning';
+                                                    else if (dr.status === 'REVIEWED') statusClass = 'info';
+                                                    else if (dr.status === 'RESOLVED') statusClass = 'success';
+                                                %>
+                                                <span class="badge bg-<%= statusClass %>"><%= dr.status %></span>
+                                            </td>
+                                            <td><%= dr.reportedAt ? new Date(dr.reportedAt).toLocaleDateString('vi-VN') : 'N/A' %></td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <p class="text-muted">Chưa có báo cáo nào từ tài xế.</p>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Báo cáo đã gửi cho Admin -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Báo cáo đã gửi cho Admin</h5>
+                    <% if (myAdminReports && myAdminReports.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tiêu đề</th>
+                                        <th>Loại</th>
+                                        <th>Ưu tiên</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày gửi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% myAdminReports.forEach(function(ar) { %>
+                                        <tr>
+                                            <td><%= ar.id %></td>
+                                            <td><%= ar.title %></td>
+                                            <td><%= ar.reportType || 'GENERAL' %></td>
+                                            <td>
+                                                <% 
+                                                    let priorityClass = 'secondary';
+                                                    if (ar.priority === 'URGENT') priorityClass = 'danger';
+                                                    else if (ar.priority === 'HIGH') priorityClass = 'warning';
+                                                    else if (ar.priority === 'MEDIUM') priorityClass = 'info';
+                                                %>
+                                                <span class="badge bg-<%= priorityClass %>"><%= ar.priority %></span>
+                                            </td>
+                                            <td>
+                                                <% 
+                                                    let adminStatusClass = 'secondary';
+                                                    if (ar.status === 'PENDING') adminStatusClass = 'warning';
+                                                    else if (ar.status === 'REVIEWED') adminStatusClass = 'info';
+                                                    else if (ar.status === 'RESOLVED') adminStatusClass = 'success';
+                                                %>
+                                                <span class="badge bg-<%= adminStatusClass %>"><%= ar.status %></span>
+                                            </td>
+                                            <td><%= ar.reportedAt ? new Date(ar.reportedAt).toLocaleDateString('vi-VN') : 'N/A' %></td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <p class="text-muted">Bạn chưa gửi báo cáo nào cho Admin.</p>
+                    <% } %>
+                </div>
+            </div>
+
+            <%- include('../partials/footer') %>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

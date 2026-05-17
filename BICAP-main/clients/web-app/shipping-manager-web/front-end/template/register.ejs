@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BICAP Register</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); width: 400px; }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        label .required { color: #dc3545; }
+        input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        input:focus { outline: none; border-color: #4CAF50; }
+        button { width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #45a049; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        .link { text-align: center; margin-top: 15px; }
+        .error-message { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 10px; margin-bottom: 15px; border-radius: 4px; text-align: center; font-size: 14px; }
+        .success-message { color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; padding: 10px; margin-bottom: 15px; border-radius: 4px; text-align: center; font-size: 14px; }
+        .form-text { font-size: 12px; color: #6c757d; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Shipping Manager Registration</h2>
+        <% if (locals.error) { %>
+            <div class="error-message"><%= error %></div>
+        <% } %>
+        <form action="/register" method="POST" id="registerForm">
+            <div class="form-group">
+                <label for="email">Email <span class="required">*</span></label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="username">Username <span class="required">*</span></label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password <span class="required">*</span></label>
+                <input type="password" id="password" name="password" required minlength="6">
+                <div class="form-text">Password must be at least 6 characters</div>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password <span class="required">*</span></label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
+            </div>
+            <input type="hidden" name="role" value="SHIPPINGMANAGER">
+            <button type="submit" id="submitBtn">Register</button>
+        </form>
+
+        <div class="link">
+            Already have an account? <a href="/login">Login here</a>
+        </div>
+    </div>
+
+    <script>
+        // Client-side password confirmation validation
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Passwords do not match!');
+                return false;
+            }
+            
+            if (password.length < 6) {
+                e.preventDefault();
+                alert('Password must be at least 6 characters!');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

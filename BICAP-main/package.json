@@ -1,0 +1,13 @@
+{
+  "name": "bicap",
+  "private": true,
+  "workspaces": [
+    "clients/web-app/*"
+  ],
+  "scripts": {
+    "bootstrap": "npm install",
+    "start:admin": "npm start --workspace=admin-web",
+    "start:farm": "npm start --workspace=farm-management-web",
+    "start:guest": "npm start --workspace=guest-web"
+  }
+}

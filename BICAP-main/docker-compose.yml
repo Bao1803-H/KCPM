@@ -1,0 +1,578 @@
+networks:
+  bicap-global-net:
+    driver: bridge
+
+services:
+  mobile-driver-app:
+    build:
+      context: ./clients/mobile-app/mobile-ship-driver/bicap-mobile
+    container_name: mobile-driver-app
+    depends_on:
+      - kong-gateway
+      - shipping-manager-service
+    environment:
+      # Expo configuration
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
+      - NODE_ENV=development
+      # API Gateway URL (sẽ được mobile app sử dụng)
+      # Lưu ý: Mobile app cần dùng IP LAN của host machine, không phải container name
+      - API_GATEWAY_URL=http://kong-gateway:8000
+      - EXPO_PUBLIC_API_URL=http://kong-gateway:8000
+    ports:
+      # Metro Bundler - React Native packager
+      - "8097:8081"
+      # Expo Dev Server
+      - "19000:19000"
+      # Expo Packager  
+      - "19001:19001"
+      # Expo DevTools (Web UI) - Truy cập http://localhost:19002 để quét QR
+      - "19002:19002"
+    networks:
+      - bicap-global-net
+    # Tự động restart nếu crash
+    restart: unless-stopped
+    # Stdin/tty cho interactive mode
+    stdin_open: true
+    tty: true
+    
+  guest-web:
+      build:
+        context: ./clients/web-app/guest-web
+      container_name: guest-web
+      restart: unless-stopped
+      depends_on:
+        - kong-gateway
+      environment:
+        - NODE_ENV=development
+        - PORT=3005
+        - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+        - TRADING_SERVICE_URL=http://kong-gateway:8000/api/trading
+        - BLOCKCHAIN_SERVICE_URL=http://kong-gateway:8000/api/blockchain
+        - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+      ports:
+        - "3005:3005"
+      networks:
+        - bicap-global-net
+
+  auth-db:
+    image: mysql:8.0
+    container_name: auth-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=bicap_auth_db
+    ports:
+      - "3307:3306"
+    networks:
+      - bicap-global-net
+    volumes:
+      - ./database/auth-database/bicap_auth_db.sql:/docker-entrypoint-initdb.d/01_bicap_auth_db.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  bicap-message-queue:
+    image: rabbitmq:3-management
+    container_name: bicap-message-queue
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_USER=root
+      - RABBITMQ_DEFAULT_PASS=root
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - bicap-global-net
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+    container_name: auth-service
+    restart: unless-stopped
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      bicap-message-queue:
+        condition: service_started
+    environment:
+      - spring.datasource.url=jdbc:mysql://auth-db:3306/bicap_auth_db
+      - spring.datasource.username=root
+      - spring.datasource.password=root
+      - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTSECRET_ADMIN=YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==
+      - BICAP_APP_JWTSECRET_RETAILER=YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
+      - BICAP_APP_JWTSECRET_FARM=YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh
+      - BICAP_APP_JWTSECRET_SHIPPINGMANAGER=YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==
+      - BICAP_APP_JWTSECRET_SHIPPINGDRIVER=YmljYXAtand0LXNoaXBwaW5nLWRyaXZlci1yb2xlLXNlY3JldC1rZXkhISEh
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
+      - SPRING_APPLICATION_JSON={"server":{"port":8080}}
+    ports:
+      - "8088:8080"
+    networks:
+      - bicap-global-net
+
+  farm-production-db:
+    image: mysql:8.0
+    container_name: farm-production-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=farm_production_db
+    ports:
+      - "3308:3306"
+    networks:
+      - bicap-global-net
+    volumes:
+      - ./database/farm-production-database/bicap_farm_db.sql:/docker-entrypoint-initdb.d/01_bicap_farm_db.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  farm-production-service:
+    build:
+      context: ./services/farm-production-service
+    container_name: farm-production-service
+    restart: unless-stopped
+    depends_on:
+      farm-production-db:
+        condition: service_healthy
+      bicap-message-queue:
+        condition: service_started
+      image-storage-service:
+        condition: service_started
+    environment:
+      - spring.datasource.url=jdbc:mysql://farm-production-db:3306/farm_production_db
+      - spring.datasource.username=root
+      - spring.datasource.password=root
+      - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTSECRET_ADMIN=YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==
+      - BICAP_APP_JWTSECRET_RETAILER=YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
+      - BICAP_APP_JWTSECRET_FARM=YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh
+      - BICAP_APP_JWTSECRET_SHIPPINGMANAGER=YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==
+      - BICAP_APP_JWTSECRET_SHIPPINGDRIVER=YmljYXAtand0LXNoaXBwaW5nLWRyaXZlci1yb2xlLXNlY3JldC1rZXkhISEh
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
+      - IMAGE_STORAGE_SERVICE_URL=http://image-storage-service:8086
+    ports:
+      - "8081:8081"
+    networks:
+      - bicap-global-net
+
+  trading-order-db:
+    image: mysql:8.0
+    container_name: trading-order-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=bicap_order_db
+    ports:
+      - "3309:3306"
+    networks:
+      - bicap-global-net
+    volumes:
+      - ./database/trading-order-db/bicap_order_db.sql:/docker-entrypoint-initdb.d/01_bicap_order_db.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  trading-order-service:
+    build:
+      context: ./services/trading-order-service
+    container_name: trading-order-service
+    restart: unless-stopped
+    depends_on:
+      trading-order-db:
+        condition: service_healthy
+      bicap-message-queue:
+        condition: service_started
+    environment:
+      - spring.datasource.url=jdbc:mysql://trading-order-db:3306/bicap_order_db
+      - spring.datasource.username=root
+      - spring.datasource.password=root
+      - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+      - spring.jpa.hibernate.ddl-auto=update
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTSECRET_ADMIN=YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==
+      - BICAP_APP_JWTSECRET_RETAILER=YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
+      - BICAP_APP_JWTSECRET_FARM=YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh
+      - BICAP_APP_JWTSECRET_SHIPPINGMANAGER=YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==
+      - BICAP_APP_JWTSECRET_SHIPPINGDRIVER=YmljYXAtand0LXNoaXBwaW5nLWRyaXZlci1yb2xlLXNlY3JldC1rZXkhISEh
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
+      - SERVER_PORT=8082
+    ports:
+      - "8082:8082"
+    networks:
+      - bicap-global-net
+
+  shipping-db:
+    image: mysql:8.0
+    container_name: shipping-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=shipping_db
+    ports:
+      - "3310:3306"
+    networks:
+      - bicap-global-net
+    volumes:
+      - ./database/shipping-db/bicap_shipping_db.sql:/docker-entrypoint-initdb.d/01_bicap_shipping_db.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  blockchain-db:
+    image: mysql:8.0
+    container_name: blockchain-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=bicap_blockchain_db
+    ports:
+      - "3311:3306"
+    networks:
+      - bicap-global-net
+    volumes:
+      - ./database/blockchain-adapter-database/bicap_blockchain_db_blockchain_records.sql:/docker-entrypoint-initdb.d/01_blockchain_records.sql
+      - ./database/blockchain-adapter-database/bicap_blockchain_db_trace_logs.sql:/docker-entrypoint-initdb.d/02_trace_logs.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  blockchain-adapter-service:
+    build:
+      context: ./services/blockchain-adapter-service
+    container_name: blockchain-adapter-service
+    restart: unless-stopped
+    depends_on:
+      blockchain-db:
+        condition: service_healthy
+      bicap-message-queue:
+        condition: service_started
+    environment:
+      - spring.datasource.url=jdbc:mysql://blockchain-db:3306/bicap_blockchain_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - spring.datasource.username=root
+      - spring.datasource.password=root
+      - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
+    ports:
+      - "8084:8084"
+    networks:
+      - bicap-global-net
+
+  shipping-manager-service:
+    build:
+      context: ./services/shipping-manager-service
+    container_name: shipping-manager-service
+    restart: unless-stopped
+    depends_on:
+      shipping-db:
+        condition: service_healthy
+      bicap-message-queue:
+        condition: service_started
+      farm-production-service:
+        condition: service_started
+      blockchain-adapter-service:
+        condition: service_started
+    environment:
+      - spring.datasource.url=jdbc:mysql://shipping-db:3306/shipping_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - spring.datasource.username=root
+      - spring.datasource.password=root
+      - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+      - spring.jpa.hibernate.ddl-auto=update
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTSECRET_ADMIN=YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==
+      - BICAP_APP_JWTSECRET_RETAILER=YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
+      - BICAP_APP_JWTSECRET_FARM=YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh
+      - BICAP_APP_JWTSECRET_SHIPPINGMANAGER=YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==
+      - BICAP_APP_JWTSECRET_SHIPPINGDRIVER=YmljYXAtand0LXNoaXBwaW5nLWRyaXZlci1yb2xlLXNlY3JldC1rZXkhISEh
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
+      - application.config.farm-service-url=http://farm-production-service:8081
+      - application.config.blockchain-service-url=http://blockchain-adapter-service:8084
+    ports:
+      - "8083:8083"
+    networks:
+      - bicap-global-net
+
+  admin-service:
+    build:
+      context: ./services/admin_service
+    container_name: admin-service
+    restart: unless-stopped
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      bicap-message-queue:
+        condition: service_started
+      farm-production-service:
+        condition: service_started
+      trading-order-service:
+        condition: service_started
+    environment:
+      - spring.datasource.url=jdbc:mysql://auth-db:3306/bicap_auth_db
+      - spring.datasource.username=root
+      - spring.datasource.password=root
+      - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTSECRET_ADMIN=YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==
+      - BICAP_APP_JWTSECRET_RETAILER=YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
+      - BICAP_APP_JWTSECRET_FARM=YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh
+      - BICAP_APP_JWTSECRET_SHIPPINGMANAGER=YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==
+      - BICAP_APP_JWTSECRET_SHIPPINGDRIVER=YmljYXAtand0LXNoaXBwaW5nLWRyaXZlci1yb2xlLXNlY3JldC1rZXkhISEh
+      - FARM_SERVICE_URL=http://farm-production-service:8081
+      - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
+    ports:
+      - "8085:8085"
+    networks:
+      - bicap-global-net
+
+  retailer-web:
+    build:
+      context: ./clients/web-app/retailer-web
+    container_name: retailer-web
+    restart: unless-stopped
+    depends_on:
+      - kong-gateway
+    environment:
+      - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+      - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
+      - NODE_ENV=development
+      - JWT_SECRET_RETAILER=YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
+      - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
+      - FARM_API_URL=http://farm-production-service:8081/api/farm-features
+      - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/fetch-marketplace-products
+      - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+    ports:
+      - "3000:3000"
+    networks:
+      - bicap-global-net
+
+  admin-web:
+    build:
+      context: ./clients/web-app/admin-web
+    container_name: admin-web
+    restart: unless-stopped
+    depends_on:
+      - kong-gateway
+      - admin-service
+    environment:
+      - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+      - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
+      - NODE_ENV=development
+      - JWT_SECRET_ADMIN=YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==
+      - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
+      - FARM_API_URL=http://farm-production-service:8081/api/farm-features
+      - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
+      - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+      - ADMIN_SERVICE_URL=http://admin-service:8085
+      - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
+    ports:
+      - "3001:3001"
+    networks:
+      - bicap-global-net
+    
+  farm-management-web: 
+    build:
+      context: ./clients/web-app/farm-management-web
+    container_name: farm-management-web
+    restart: unless-stopped
+    depends_on:
+      - kong-gateway
+      - bicap-message-queue
+      - image-storage-service
+    environment:
+      - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+      - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
+      - NODE_ENV=development
+      - DOCKER_ENV=true
+      - JWT_SECRET_FARM=YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh
+      - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
+      - RABBITMQ_ENABLED=true
+      - FARM_API_URL=http://kong-gateway:8000/api/farm-features
+      - PRODUCTION_BATCH_API_URL=http://kong-gateway:8000/api/production-batches
+      - FARMING_PROCESS_API_URL=http://kong-gateway:8000/api/farming-processes
+      - EXPORT_BATCH_API_URL=http://kong-gateway:8000/api/export-batches
+      - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
+      - IMAGES_API_PATH=http://kong-gateway:8000/api/images
+      - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/production-batches
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
+    ports:
+      - "3002:3002"
+    networks:
+      - bicap-global-net
+
+  shipping-manager-web:
+    build: 
+      context: ./clients/web-app/shipping-manager-web
+    container_name: shipping-manager-web
+    restart: unless-stopped
+    depends_on:
+      - kong-gateway
+    environment:
+      - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
+      - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
+      - NODE_ENV=development
+      - JWT_SECRET_SHIPPING_MANAGER=YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==
+      - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
+      - FARM_API_URL=http://kong-gateway:8000/api/farm-features
+      - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/marketplace-products
+      - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
+      - API_GATEWAY_BASE_URL=http://localhost:8000
+      - SHIPPING_SERVICE_URL=http://kong-gateway:8000/api
+      - REACT_APP_SHIPPING_API_URL=http://localhost:8000/api
+    ports:
+      - "3003:3003"
+    networks:
+      - bicap-global-net
+
+  # Shipping driver mobile app (Expo). Connect via Expo Go to http://<host>:19000.
+  # On real device: set HOST_IP to your machine's LAN IP (e.g. HOST_IP=192.168.1.4).
+  # App calls Kong at :8000 for /api/auth, /api/shipments, etc.
+  mobile-ship-driver:
+    build:
+      context: ./clients/mobile-app/mobile-ship-driver/bicap-mobile
+    container_name: mobile-ship-driver
+    restart: unless-stopped
+    depends_on:
+      - kong-gateway
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - REACT_NATIVE_PACKAGER_HOSTNAME=${HOST_IP:-host.docker.internal}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+      - "18081:8081"
+    networks:
+      - bicap-global-net
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - bicap-global-net
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  image-storage-db:
+    image: mysql:8.0
+    container_name: image-storage-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=image_storage_db
+    ports:
+      - "3312:3306"
+    networks:
+      - bicap-global-net
+    volumes:
+      - ./database/image-storage-db/image_storage_db.sql:/docker-entrypoint-initdb.d/01_image_storage_db.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  image-storage-service:
+    build:
+      context: ./services/image-storage-service
+    container_name: image-storage-service
+    restart: unless-stopped
+    depends_on:
+      image-storage-db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      - spring.datasource.url=jdbc:mysql://image-storage-db:3306/image_storage_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - spring.datasource.username=root
+      - spring.datasource.password=root
+      - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - STORAGE_BUCKET_NAME=bicap-product-images
+      - BICAP_APP_JWTSECRET=YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
+      - BICAP_APP_JWTSECRET_ADMIN=YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==
+      - BICAP_APP_JWTSECRET_RETAILER=YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
+      - BICAP_APP_JWTSECRET_FARM=YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh
+      - BICAP_APP_JWTSECRET_SHIPPINGMANAGER=YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==
+      - BICAP_APP_JWTSECRET_SHIPPINGDRIVER=YmljYXAtand0LXNoaXBwaW5nLWRyaXZlci1yb2xlLXNlY3JldC1rZXkhISEh
+      - BICAP_APP_JWTEXPIRATIONMS=86400000
+    ports:
+      - "8086:8086"
+    networks:
+      - bicap-global-net
+
+  kong-gateway:
+    image: kong:latest
+    container_name: kong-gateway
+    restart: unless-stopped
+    environment:
+      - KONG_DATABASE=off
+      - KONG_DECLARATIVE_CONFIG=/usr/local/kong/declarative/kong.yml
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001
+      - KONG_LOG_LEVEL=debug  
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    networks:
+      - bicap-global-net
+    volumes:
+      - ./api-gateway/kong.yml:/usr/local/kong/declarative/kong.yml
+
+volumes:
+  minio-data:

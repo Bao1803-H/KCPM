@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title><%= pageTitle || "Đơn hàng của tôi" %></title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <%- include("partials/sidebar", { user }) %>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- HEADER -->
+    <%- include("partials/header", { pageTitle }) %>
+
+    <!-- CONTENT -->
+    <main class="content">
+      <div class="content-inner infi-container" id="orderContainer">
+
+        <% if (!orders || orders.length === 0) { %>
+          <div class="empty-text">
+            Bạn chưa có đơn hàng nào
+          </div>
+        <% } else { %>
+
+          <% orders.forEach(o => { %>
+            <div class="order-card infi-item">
+
+              <!-- LEFT -->
+              <div class="order-left">
+                <div class="order-id">Đơn hàng #<%= o.orderId %></div>
+                <div class="order-date">
+                  <%= new Date(o.createdAt).toLocaleString("vi-VN") %>
+                </div>
+              </div>
+
+              <!-- RIGHT -->
+              <div class="order-right">
+                <span class="status-badge status-<%= o.status.toLowerCase() %>">
+                  <%= o.status %>
+                </span>
+                <button
+                  class="btn-detail"
+                  onclick="location.href='/orders/<%= o.orderId %>'"
+                >
+                  Xem chi tiết
+                </button>
+              </div>
+
+            </div>
+          <% }) %>
+
+        <% } %>
+
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <%- include("partials/footer") %>
+
+  </div>
+</div>
+
+<!-- ================= INFINITE SCROLL INLINE ================= -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const items = document.querySelectorAll(".infi-item");
+    const batchSize = 5;
+    let visibleCount = batchSize;
+
+    function render() {
+      items.forEach((item, index) => {
+        item.style.display = index < visibleCount ? "flex" : "none";
+      });
+    }
+
+    render();
+
+    window.addEventListener("scroll", () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 120
+      ) {
+        visibleCount += batchSize;
+        render();
+      }
+    });
+  });
+</script>
+
+<!-- BASE LAYOUT JS -->
+<script src="/js/layout.js"></script>
+
+</body>
+</html>

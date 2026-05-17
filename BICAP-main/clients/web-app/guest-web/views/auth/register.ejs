@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+        .register-image-bg {
+            background: linear-gradient(135deg, rgba(46, 125, 50, 0.8), rgba(27, 94, 32, 0.9)), url('https://images.unsplash.com/photo-1625246333195-09870c4535cc?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .input-group-text { background-color: #f8f9fa; border-right: none; }
+        .form-control { border-left: none; }
+        .form-control:focus { box-shadow: none; border-color: #ced4da; }
+        .input-group:focus-within { box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25); border-radius: 0.375rem; }
+        .input-group:focus-within .input-group-text, .input-group:focus-within .form-control { border-color: #4CAF50; }
+        
+        .password-strength { height: 4px; border-radius: 2px; background: #e0e0e0; overflow: hidden; }
+        .password-strength .bar { height: 100%; transition: width 0.3s ease, background 0.3s ease; }
+    </style>
+</head>
+<body class="register-page d-flex align-items-center justify-content-center py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                <div class="card register-card shadow-lg border-0 overflow-hidden">
+                    <div class="row g-0">
+                        
+                        <div class="col-lg-5 d-none d-lg-flex flex-column justify-content-center align-items-center text-white p-5 register-image-bg">
+                            <div class="text-center mb-4">
+                                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm" style="width: 70px; height: 70px;">
+                                    <span style="font-size: 2.5rem;">🚀</span>
+                                </div>
+                                <h3 class="fw-bold">Tham gia BiCap</h3>
+                                <p class="opacity-75 small">Kết nối hệ sinh thái nông nghiệp sạch</p>
+                            </div>
+                            
+                            <div class="d-flex flex-column gap-3 w-100 px-3">
+                                <div class="d-flex align-items-center p-3 bg-white bg-opacity-10 rounded-3 backdrop-blur">
+                                    <i class="material-symbols-rounded text-warning me-3">verified</i>
+                                    <div class="text-start lh-1">
+                                        <span class="fw-bold d-block mb-1">Minh Bạch</span>
+                                        <small class="opacity-75" style="font-size: 0.75rem;">Truy xuất nguồn gốc Blockchain</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center p-3 bg-white bg-opacity-10 rounded-3 backdrop-blur">
+                                    <i class="material-symbols-rounded text-info me-3">storefront</i>
+                                    <div class="text-start lh-1">
+                                        <span class="fw-bold d-block mb-1">Giá Tốt</span>
+                                        <small class="opacity-75" style="font-size: 0.75rem;">Mua trực tiếp từ nông trại</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center p-3 bg-white bg-opacity-10 rounded-3 backdrop-blur">
+                                    <i class="material-symbols-rounded text-danger me-3">local_shipping</i>
+                                    <div class="text-start lh-1">
+                                        <span class="fw-bold d-block mb-1">Nhanh Chóng</span>
+                                        <small class="opacity-75" style="font-size: 0.75rem;">Vận chuyển tối ưu hóa</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-7 bg-white">
+                            <div class="card-body p-4 p-md-5">
+                                <div class="text-center mb-4">
+                                    <h4 class="fw-bold text-dark">Tạo tài khoản</h4>
+                                    <p class="text-muted small">Điền thông tin để bắt đầu hành trình của bạn</p>
+                                </div>
+
+                                <% if (typeof error !== 'undefined' && error) { %>
+                                    <div class="alert alert-danger d-flex align-items-center p-2 mb-3" role="alert">
+                                        <i class="material-symbols-rounded me-2">error</i>
+                                        <small><%= error %></small>
+                                    </div>
+                                <% } %>
+
+                                <form action="/register" method="POST">
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small text-muted fw-bold">HỌ TÊN</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text text-muted"><i class="material-symbols-rounded">person</i></span>
+                                                <input type="text" name="fullname" class="form-control" placeholder="Nguyễn Văn A" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small text-muted fw-bold">SỐ ĐIỆN THOẠI</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text text-muted"><i class="material-symbols-rounded">smartphone</i></span>
+                                                <input type="tel" name="phone" class="form-control" placeholder="09xxxxxxx" required>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted fw-bold">EMAIL</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text text-muted"><i class="material-symbols-rounded">mail</i></span>
+                                            <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted fw-bold">MẬT KHẨU</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text text-muted"><i class="material-symbols-rounded">lock</i></span>
+                                            <input type="password" name="password" id="password" class="form-control" placeholder="Tối thiểu 8 ký tự" required minlength="8">
+                                        </div>
+                                        <div class="password-strength mt-2">
+                                            <div class="bar" id="strengthBar" style="width: 0%; background: #e0e0e0;"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-1">
+                                            <small class="text-muted" style="font-size: 0.7rem;" id="strengthText">Độ mạnh mật khẩu</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted fw-bold">XÁC NHẬN MẬT KHẨU</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text text-muted"><i class="material-symbols-rounded">lock_reset</i></span>
+                                            <input type="password" name="confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                                            <label class="form-check-label small text-muted" for="terms">
+                                                Tôi đồng ý với <a href="#" class="text-success text-decoration-none">Điều khoản sử dụng</a> & <a href="#" class="text-success text-decoration-none">Chính sách bảo mật</a>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-bicap w-100 py-2 fs-6 shadow-sm">
+                                        Đăng ký tài khoản
+                                    </button>
+                                </form>
+
+                                <div class="text-center mt-4">
+                                    <p class="mb-0 text-muted small">Đã có tài khoản? <a href="/login" class="text-success fw-bold text-decoration-none">Đăng nhập ngay</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="/" class="text-white text-decoration-none opacity-75 hover-opacity-100">
+                        <i class="material-symbols-rounded align-middle fs-5">arrow_back</i> Quay về trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Script kiểm tra độ mạnh mật khẩu (giữ nguyên logic của bạn)
+        document.getElementById('password').addEventListener('input', function() {
+            var password = this.value;
+            var strength = 0;
+            var bar = document.getElementById('strengthBar');
+            var text = document.getElementById('strengthText');
+            
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            
+            var colors = ['#dc3545', '#ffc107', '#ffc107', '#4CAF50', '#2E7D32'];
+            var texts = ['Rất yếu', 'Yếu', 'Trung bình', 'Mạnh', 'Rất mạnh'];
+            var widths = ['20%', '40%', '60%', '80%', '100%'];
+            
+            bar.style.width = widths[strength - 1] || '0%';
+            bar.style.background = colors[strength - 1] || '#e0e0e0';
+            text.textContent = texts[strength - 1] || 'Độ mạnh mật khẩu';
+            text.style.color = colors[strength - 1] || '#6c757d';
+        });
+    </script>
+</body>
+</html>

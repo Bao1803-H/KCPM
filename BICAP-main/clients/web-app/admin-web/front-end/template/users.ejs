@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <title>BiCap Admin - Quản lý User</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="icon" type="image/png" href="/assets/img/favicon.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
+  <link href="/assets/css/nucleo-icons.css" rel="stylesheet" />
+  <link href="/assets/css/nucleo-svg.css" rel="stylesheet" />
+  <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link id="pagestyle" href="/assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+  
+  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-radius-lg fixed-start ms-2 bg-white my-2" id="sidenav-main">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-dark opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand px-4 py-3 m-0" href="/admin/dashboard">
+        <img src="/assets/img/logo-ct-dark.png" class="navbar-brand-img" width="26" height="26" alt="main_logo">
+        <span class="ms-1 text-sm text-dark font-weight-bold">BiCap Admin</span>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0 mb-2">
+    <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link text-dark" href="/dashboard">
+            <i class="material-symbols-rounded opacity-5">admin_panel_settings</i>
+            <span class="nav-link-text ms-1">Xét duyệt quyền</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active bg-gradient-dark text-white" href="/admin/users">
+            <i class="material-symbols-rounded opacity-5">group</i>
+            <span class="nav-link-text ms-1">Quản lý User</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-dark" href="/admin/farms">
+            <i class="material-symbols-rounded opacity-5">agriculture</i>
+            <span class="nav-link-text ms-1">Giám sát Farm</span>
+          </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/admin/approvals">
+                <i class="material-symbols-rounded opacity-5">category</i>
+                <span class="nav-link-text ms-1">Quản lý Danh mục</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/admin/products">
+                <i class="material-symbols-rounded opacity-5">inventory_2</i>
+                <span class="nav-link-text ms-1">Giám sát Sản phẩm</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/admin/orders">
+                <i class="material-symbols-rounded opacity-5">shopping_cart</i>
+                <span class="nav-link-text ms-1">Quản lý Đơn hàng</span>
+            </a>
+        </li>
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs text-dark font-weight-bolder opacity-5">Hệ thống</h6>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-dark" href="/logout">
+            <i class="material-symbols-rounded opacity-5">logout</i>
+            <span class="nav-link-text ms-1">Đăng xuất</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-3 shadow-none border-radius-xl" id="navbarBlur" data-scroll="true">
+      <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Admin</a></li>
+            <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Users</li>
+          </ol>
+          <h6 class="font-weight-bolder mb-0">Quản lý người dùng hệ thống</h6>
+        </nav>
+      </div>
+    </nav>
+
+    <div class="container-fluid px-2 px-md-4">
+      <div class="card my-3">
+        <div class="card-body p-3">
+          <form action="/admin/users" method="GET" class="row align-items-center">
+            <div class="col-md-4">
+              <div class="input-group input-group-outline">
+                <label class="form-label">Tìm kiếm tên hoặc email...</label>
+                <input type="text" name="keyword" class="form-control" value="<%= typeof keyword !== 'undefined' ? keyword : '' %>">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="input-group input-group-outline">
+                <select name="role" class="form-control">
+                  <option value="">-- Tất cả quyền --</option>
+                  <option value="ROLE_FARMMANAGER" <%= (typeof role !== 'undefined' && role === 'ROLE_FARMMANAGER') ? 'selected' : '' %>>Chủ Trang Trại</option>
+                  <option value="ROLE_GUEST" <%= (typeof role !== 'undefined' && role === 'ROLE_GUEST') ? 'selected' : '' %>>Khách (Guest)</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-2">
+              <button type="submit" class="btn bg-gradient-dark w-100 mb-0">Lọc</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card my-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+              <div class="bg-gradient-dark shadow-dark border-radius-lg pt-4 pb-3 d-flex justify-content-between align-items-center px-3">
+                <h6 class="text-white text-capitalize ps-3 mb-0">Danh sách Users</h6>
+              </div>
+            </div>
+            <div class="card-body px-0 pb-2">
+              <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0">
+                  <thead>
+                    <tr>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">User Info</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Roles</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Trạng thái</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (users && users.length > 0) { %>
+                      <% users.forEach(function(user) { %>
+                        <tr>
+                          <td>
+                            <div class="d-flex px-3 py-1">
+                              <div>
+                                <img src="/assets/img/avatar-default.jpg" class="avatar avatar-sm me-3 border-radius-lg" alt="user1">
+                              </div>
+                              <div class="d-flex flex-column justify-content-center">
+                                <h6 class="mb-0 text-sm"><%= user.username %></h6>
+                                <p class="text-xs text-secondary mb-0"><%= user.email %></p>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <% if (user.roles) { %>
+                                <% user.roles.forEach(role => { %>
+                                    <span class="badge badge-sm bg-gradient-info"><%= role %></span>
+                                <% }) %>
+                            <% } %>
+                          </td>
+                          <td class="align-middle text-center text-sm">
+                            <% if (user.status === 'ACTIVE') { %>
+                              <span class="badge badge-sm bg-gradient-success">Hoạt động</span>
+                            <% } else if (user.status === 'PENDING') { %>
+                              <span class="badge badge-sm bg-gradient-warning text-dark">Chờ duyệt</span>
+                            <% } else { %>
+                              <span class="badge badge-sm bg-gradient-danger">Đã khóa</span>
+                            <% } %>
+                          </td>
+                          <td class="align-middle text-center">
+                            <% if (user.status === 'ACTIVE') { %>
+                              <button class="btn btn-sm btn-outline-danger mb-0" onclick="changeStatus('<%= user.id %>', 'BLOCKED')">
+                                <i class="material-symbols-rounded text-sm">lock</i> Khóa
+                              </button>
+                            <% } else { %>
+                              <button class="btn btn-sm btn-outline-success mb-0" onclick="changeStatus('<%= user.id %>', 'ACTIVE')">
+                                <i class="material-symbols-rounded text-sm">lock_open</i> Mở
+                              </button>
+                            <% } %>
+                          </td>
+                        </tr>
+                      <% }); %>
+                    <% } else { %>
+                        <tr><td colspan="4" class="text-center py-4">Không tìm thấy user nào.</td></tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-footer px-3 border-0 d-flex align-items-center justify-content-between">
+                <% 
+                    const page = (pagination && typeof pagination.page === 'number') ? pagination.page : 0;
+                    const totalPages = (pagination && typeof pagination.totalPages === 'number') ? pagination.totalPages : 1;
+                    const size = (pagination && typeof pagination.size === 'number') ? pagination.size : 10;
+                    const totalElements = (pagination && typeof pagination.totalElements === 'number') ? pagination.totalElements : 0;
+                    
+                    // Tạo query string để giữ lại bộ lọc khi chuyển trang
+                    const currentKeyword = encodeURIComponent(keyword || '');
+                    const currentRole = encodeURIComponent(role || '');
+                    const baseLink = `?keyword=${currentKeyword}&role=${currentRole}&size=${size}`;
+                %>
+                
+                <div class="text-secondary text-sm">
+                    Hiển thị <b><%= users.length %></b> trên tổng số <b><%= totalElements %></b> người dùng
+                </div>
+
+                <nav aria-label="Page navigation">
+                  <ul class="pagination d-flex justify-content-end mb-0">
+                    
+                    <li class="page-item <%= page <= 0 ? 'disabled' : '' %>">
+                      <a class="page-link" href="<%= baseLink %>&page=<%= page - 1 %>" aria-label="Previous">
+                        <span class="material-symbols-rounded text-sm">chevron_left</span>
+                      </a>
+                    </li>
+
+                    <li class="page-item active">
+                        <span class="page-link bg-gradient-dark text-white shadow-dark border-0">
+                          <%= page + 1 %> / <%= totalPages > 0 ? totalPages : 1 %>
+                        </span>
+                    </li>
+
+                    <li class="page-item <%= page >= totalPages - 1 ? 'disabled' : '' %>">
+                      <a class="page-link" href="<%= baseLink %>&page=<%= page + 1 %>" aria-label="Next">
+                        <span class="material-symbols-rounded text-sm">chevron_right</span>
+                      </a>
+                    </li>
+
+                  </ul>
+                </nav>
+            </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/assets/js/core/bootstrap.min.js"></script>
+  <script src="/assets/js/material-dashboard.min.js"></script>
+  <script>
+    async function changeStatus(userId, newStatus) {
+      const action = newStatus === 'BLOCKED' ? 'KHÓA' : 'MỞ KHÓA';
+      if (!confirm(`Bạn có chắc chắn muốn ${action} tài khoản này?`)) return;
+
+        try {
+            // Gọi API Admin Service
+            const response = await fetch(`/api/v1/admin/users/${userId}/status?status=${newStatus}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (response.ok) {
+          alert(`Đã ${action} thành công!`);
+                window.location.reload();
+            } else {
+          const data = await response.json().catch(() => ({}));
+          alert(data.message || 'Có lỗi xảy ra!');
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Lỗi kết nối server");
+        }
+    }
+  </script>
+</body>
+</html>

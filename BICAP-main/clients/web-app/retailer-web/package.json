@@ -1,0 +1,25 @@
+{
+  "name": "retailer-front-end",
+  "version": "1.0.0",
+  "description": "auth-service",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "body-parser": "^1.20.2",
+    "cookie": "^1.1.1",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-session": "^1.18.2",
+    "jsonwebtoken": "^9.0.3",
+    "jwt-decode": "^4.0.0",
+    "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

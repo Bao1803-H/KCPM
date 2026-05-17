@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Giỏ hàng</title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <%- include("partials/sidebar", { user }) %>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- HEADER -->
+    <%- include("partials/header", { pageTitle: "Giỏ hàng" }) %>
+
+    <!-- CONTENT -->
+    <main class="content">
+      <div class="content-inner cart-page">
+
+        <% if (!cart || cart.length === 0) { %>
+          <p>Giỏ hàng trống</p>
+        <% } else { %>
+
+        <!-- LIST ITEM (SCROLL) -->
+        <div class="cart-list">
+          <% cart.forEach(item => { %>
+            <div class="cart-item"
+                 data-id="<%= item.id %>"
+                 data-price="<%= item.price %>">
+
+              <!-- IMAGE -->
+              <div class="cart-image">
+                <img src="/img/product-placeholder.png" alt="<%= item.name %>">
+              </div>
+
+              <!-- INFO -->
+              <div class="cart-info">
+                <h4><%= item.name %></h4>
+                <p class="price"><%= item.price %> VND/KG</p>
+              </div>
+
+              <!-- QTY -->
+              <div class="cart-qty">
+                <button class="qty-btn minus" data-id="<%= item.id %>">−</button>
+                <span class="qty"><%= item.quantity %></span>
+                <button class="qty-btn plus" data-id="<%= item.id %>">+</button>
+              </div>
+
+              <!-- ITEM TOTAL -->
+              <div class="cart-total">
+                <span class="item-total">
+                  <%= item.price * item.quantity %> VND
+                </span>
+              </div>
+
+              <!-- REMOVE -->
+              <div class="cart-remove">
+                <button class="remove-btn" data-id="<%= item.id %>">✕</button>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- FOOTER (STICKY) -->
+        <div class="cart-footer">
+          <div class="cart-summary">
+            Tổng tiền: <strong id="grandTotal">0</strong> VND
+          </div>
+          <button type="button" class="btn-checkout">Thanh toán</button>
+        </div>
+
+        <% } %>
+      </div>
+
+      <!-- ================= PAYMENT POPUP ================= -->
+<div class="payment-overlay" id="paymentOverlay" onclick="closePayment()">
+  <div class="payment-modal" onclick="event.stopPropagation()">
+
+    <!-- HEADER -->
+    <div class="payment-header">
+      <h3>Thanh toán</h3>
+      <p>
+        Tổng tiền:
+        <strong><span id="paymentTotal">0</span> VND</strong>
+      </p>
+    </div>
+
+    <!-- METHODS -->
+    <div class="payment-methods">
+      <label class="payment-method">
+        <input type="radio" name="paymentMethod" value="momo" checked>
+        <span>📱 MoMo</span>
+      </label>
+
+      <label class="payment-method">
+        <input type="radio" name="paymentMethod" value="bank">
+        <span>🏦 Ngân hàng</span>
+      </label>
+
+      <label class="payment-method">
+        <input type="radio" name="paymentMethod" value="vnpay">
+        <span>💳 VNPay</span>
+      </label>
+    </div>
+
+    <!-- SHIPPING ADDRESS -->
+    <div class="payment-address">
+      <label for="shippingAddress">📍 Địa chỉ giao hàng</label>
+      <textarea
+        id="shippingAddress"
+        placeholder="Nhập địa chỉ giao hàng..."
+        rows="3"
+        style="width:100%;margin-top:8px"
+      ></textarea>
+    </div>
+
+    <!-- ACTION -->
+    <button
+      type="button"
+      class="btn-checkout btn-next"
+      onclick="handlePaymentNext()"
+    >
+      Tiếp theo
+    </button>
+
+  </div>
+</div>
+
+<!-- ================= MOMO QR MODAL ================= -->
+<div class="payment-overlay hidden" id="qrOverlay">
+  <div class="payment-modal qr-modal" onclick="event.stopPropagation()">
+
+    <h3>Quét mã QR MoMo</h3>
+
+    <img
+      id="momoQr"
+      src=""
+      alt="MoMo QR"
+      style="width:240px;margin:20px auto;display:block"
+    />
+
+    <p style="text-align:center">
+      Tổng tiền:
+      <strong><span id="qrTotal">0</span> VND</strong>
+    </p>
+
+    <button type="button" class="btn-checkout" onclick="confirmMomoPayment()">
+      Tôi đã thanh toán
+    </button>
+
+  </div>
+</div>
+
+    </main>
+
+    <%- include("partials/footer") %>
+  </div>
+</div>
+
+<script src="/js/cart.js"></script>
+<script src="/js/layout.js"></script>
+</body>
+</html>

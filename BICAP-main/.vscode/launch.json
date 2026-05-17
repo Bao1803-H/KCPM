@@ -1,0 +1,122 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "FarmManagementApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.farm_management.FarmManagementApplication",
+            "projectName": "farm-production-service"
+        },
+        {
+            "type": "java",
+            "name": "AdminServiceApplication",
+            "request": "launch",
+            "mainClass": "com.example.admin_service.AdminServiceApplication",
+            "projectName": "admin_service"
+        },
+        {
+            "type": "java",
+            "name": "FarmManagementApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.farm_management.FarmManagementApplication",
+            "projectName": "com.bicap-Farm_Management"
+        },
+        {
+            "type": "java",
+            "name": "AuthServiceApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.auth.AuthServiceApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "TradingOrderServiceApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.trading_order_service.TradingOrderServiceApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "FarmManagementApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.farm_management.FarmManagementApplication",
+            "projectName": "Farm_Management"
+        },
+        {
+            "type": "java",
+            "name": "FarmManagementApplication",
+            "request": "launch",
+            "mainClass": "com.example.farm_management.FarmManagementApplication",
+            "projectName": "Farm_Management"
+        },
+        {
+            "type": "java",
+            "name": "BlockchainAdapterServiceApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.blockchain_adapter_service.BlockchainAdapterServiceApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-AuthServiceApplication<auth-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.auth.AuthServiceApplication",
+            "projectName": "auth-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Launch BlockchainAdapterServiceApplication",
+            "request": "launch",
+            "mainClass": "com.bicap.blockchain_adapter_service.BlockchainAdapterServiceApplication",
+            "projectName": "blockchain-adapter-service",
+            "cwd": "${workspaceFolder}",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-TradingOrderServiceApplication<com.bicap-trading_order_service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.trading_order_service.TradingOrderServiceApplication",
+            "projectName": "com.bicap-trading_order_service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=50754 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=com.bicap-trading_order_service"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-AuthServiceApplication<com.bicap-auth-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.auth.AuthServiceApplication",
+            "projectName": "com.bicap-auth-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=58632 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=com.bicap-auth-service"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-BlockchainAdapterServiceApplication<com.bicap-blockchain-adapter-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.blockchain_adapter_service.BlockchainAdapterServiceApplication",
+            "projectName": "com.bicap-blockchain-adapter-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-TradingOrderServiceApplication<trading_order_service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.trading_order_service.TradingOrderServiceApplication",
+            "projectName": "trading_order_service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

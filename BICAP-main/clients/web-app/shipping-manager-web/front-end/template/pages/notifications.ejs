@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Thông báo - Shipping Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="d-flex">
+        <%- include('../partials/sidebar') %>
+        
+        <div class="flex-grow-1 p-4" style="margin-left: 250px; background-color: #f8f9fa; min-height: 100vh;">
+            <h2 class="mb-4">📢 Gửi Thông báo</h2>
+
+            <% if (typeof query !== 'undefined' && query.success) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <%= query.success %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+            <% if (typeof query !== 'undefined' && query.error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <%= query.error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📨 Gửi thông báo trực tiếp</h5>
+                </div>
+                <div class="card-body">
+                    <form action="/notifications" method="POST" id="notificationForm">
+                        <div class="mb-3">
+                            <label class="form-label">Gửi đến <span class="text-danger">*</span></label>
+                            <select class="form-select" name="recipientType" required>
+                                <option value="">-- Chọn người nhận --</option>
+                                <option value="FARM_MANAGER">Farm Manager (Quản lý Nông trại)</option>
+                                <option value="RETAILER">Retailer (Nhà bán lẻ)</option>
+                                <option value="ALL">Tất cả (Farm Manager + Retailer)</option>
+                            </select>
+                            <small class="form-text text-muted">Chọn đối tượng nhận thông báo</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tiêu đề thông báo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="title" placeholder="VD: Thông báo về tình trạng vận chuyển" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nội dung thông báo <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="message" rows="5" placeholder="Nhập nội dung thông báo chi tiết..." required></textarea>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Mức độ ưu tiên</label>
+                                <select class="form-select" name="priority">
+                                    <option value="LOW">Thấp</option>
+                                    <option value="MEDIUM" selected>Trung bình</option>
+                                    <option value="HIGH">Cao</option>
+                                    <option value="URGENT">Khẩn cấp</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">ID Đơn hàng liên quan (Tùy chọn)</label>
+                                <input type="number" class="form-control" name="relatedOrderId" placeholder="VD: 123">
+                                <small class="form-text text-muted">Nếu thông báo liên quan đến một đơn hàng cụ thể</small>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>ℹ️ Lưu ý:</strong> Thông báo sẽ được gửi qua RabbitMQ và các service khác (Farm Service, Trading Service) sẽ nhận và xử lý.
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <span class="me-2">📤</span>Gửi thông báo
+                        </button>
+                        <button type="reset" class="btn btn-secondary btn-lg ms-2">Xóa form</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">ℹ️ Hướng dẫn</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Khi nào nên gửi thông báo thủ công?</h6>
+                    <ul>
+                        <li>Thông báo về thay đổi lịch trình vận chuyển</li>
+                        <li>Thông báo về sự cố hoặc trì hoãn</li>
+                        <li>Thông báo về cập nhật quan trọng không liên quan đến trạng thái shipment</li>
+                        <li>Thông báo chung cho Farm Manager hoặc Retailer</li>
+                    </ul>
+                    <hr>
+                    <h6>Thông báo tự động</h6>
+                    <p class="text-muted mb-0">
+                        Hệ thống tự động gửi thông báo khi trạng thái shipment thay đổi (PENDING → ASSIGNED → IN_TRANSIT → DELIVERED).
+                        Bạn chỉ cần gửi thông báo thủ công cho các trường hợp đặc biệt.
+                    </p>
+                </div>
+            </div>
+
+            <%- include('../partials/footer') %>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

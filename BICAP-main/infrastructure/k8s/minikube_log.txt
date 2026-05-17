@@ -1,0 +1,10 @@
+😄  minikube v1.37.0 on Microsoft Windows 11 Home Single Language 10.0.26200.7462 Build 26200.7462
+✨  Automatically selected the docker driver
+📌  Using Docker Desktop driver with root privileges
+👍  Starting "minikube" primary control-plane node in "minikube" cluster
+🚜  Pulling base image v0.0.48 ...
+🔗  Configuring bridge CNI (Container Networking Interface) ...
+🔎  Verifying Kubernetes components...
+    ▪ Using image gcr.io/k8s-minikube/storage-provisioner:v5
+🌟  Enabled addons: default-storageclass, storage-provisioner
+🏄  Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default

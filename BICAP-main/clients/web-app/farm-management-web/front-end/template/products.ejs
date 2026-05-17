@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="icon" type="image/png" href="/assets/img/favicon.png">
+  <title>Quản lý Sản phẩm - BICAP Farm</title>
+  
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
+  <link href="/assets/css/nucleo-icons.css" rel="stylesheet" />
+  <link href="/assets/css/nucleo-svg.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link id="pagestyle" href="/assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    /* Navigation Styles */
+    .sidenav {
+      min-height: 100vh;
+    }
+    
+    .sidenav .navbar-nav {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .sidenav .nav-item {
+      margin-bottom: 4px;
+    }
+    
+    .sidenav .nav-link {
+      display: flex !important;
+      align-items: center;
+      padding: 12px 16px;
+      margin: 6px 12px;
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #344767 !important;
+      font-weight: 500;
+      position: relative;
+      text-decoration: none;
+      width: auto;
+      min-height: 44px;
+    }
+    
+    .sidenav .nav-link i {
+      font-size: 20px !important;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+    
+    .sidenav .nav-link .nav-link-text {
+      font-size: 14px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    
+    /* Inactive nav link hover */
+    .sidenav .nav-link:not(.active):hover {
+      background-color: rgba(67, 160, 71, 0.08) !important;
+      color: #43A047 !important;
+      transform: translateX(4px);
+    }
+    
+    .sidenav .nav-link:not(.active):hover i {
+      opacity: 1;
+      color: #43A047;
+    }
+    
+    /* Active nav link */
+    .sidenav .nav-link.active {
+      background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
+    }
+    
+    .sidenav .nav-link.active i {
+      opacity: 1;
+      color: #ffffff !important;
+    }
+    
+    .sidenav .nav-link.active .nav-link-text {
+      font-weight: 600;
+      color: #ffffff !important;
+    }
+    
+    /* Account section divider */
+    .sidenav .nav-item.mt-3 h6 {
+      padding: 8px 16px;
+      margin: 16px 12px 8px 12px;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      color: #7b809a;
+      font-weight: 600;
+    }
+    
+    /* Ensure sidenav is visible */
+    #sidenav-collapse-main {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    #sidenav-collapse-main.show {
+      display: block !important;
+    }
+    
+    .sidenav .navbar-nav {
+      display: block !important;
+    }
+    
+    .sidenav-footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding-bottom: 20px;
+    }
+    
+    /* Make sure all nav items are visible */
+    .sidenav .nav-item {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    /* Fix for Material Dashboard override */
+    .sidenav .nav-link.text-dark {
+      color: #344767 !important;
+    }
+  </style>
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-radius-lg fixed-start ms-2 bg-white my-2" id="sidenav-main">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-dark opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand px-4 py-3 m-0" href="/dashboard">
+        <div class="d-flex align-items-center">
+          <i class="material-symbols-rounded text-success me-2" style="font-size: 28px;">agriculture</i>
+          <span class="ms-1 text-sm text-dark font-weight-bolder">BICAP Farm</span>
+        </div>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0 mb-2">
+    <div class="collapse navbar-collapse w-auto show" id="sidenav-collapse-main" style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+      <ul class="navbar-nav" style="display: block !important; visibility: visible !important;">
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard">
+            <i class="material-symbols-rounded">dashboard</i>
+            <span class="nav-link-text">Dashboard</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link active" href="/products">
+            <i class="material-symbols-rounded">storefront</i>
+            <span class="nav-link-text">Product Management</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/shipping">
+            <i class="material-symbols-rounded">local_shipping</i>
+            <span class="nav-link-text">Shipping</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/season-monitor">
+            <i class="material-symbols-rounded">grass</i>
+            <span class="nav-link-text">Season Monitor</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/farm-info">
+            <i class="material-symbols-rounded">agriculture</i>
+            <span class="nav-link-text">Farm Information</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/notifications">
+            <i class="material-symbols-rounded">notifications</i>
+            <span class="nav-link-text">Notifications</span>
+          </a>
+        </li>
+
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs text-dark font-weight-bolder opacity-5">Account</h6>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/profile">
+            <i class="material-symbols-rounded">person</i>
+            <span class="nav-link-text">Profile</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/logout" id="logout-button">
+            <i class="material-symbols-rounded">logout</i>
+            <span class="nav-link-text">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="sidenav-footer position-absolute w-100 bottom-0">
+      <div class="mx-3 mb-3">
+        <div class="card bg-gradient-success shadow-sm" style="border-radius: 15px; background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%);">
+          <div class="card-body p-3 text-center text-white">
+            <i class="material-symbols-rounded mb-2" style="font-size: 32px;">agriculture</i>
+            <p class="text-sm mb-0 font-weight-bold">BICAP Farm</p>
+            <p class="text-xs mb-0 opacity-8">Management System</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <div class="container-fluid py-4">
+      
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+              <div class="bg-gradient-success shadow-success border-radius-lg pt-4 pb-3">
+                <h6 class="text-white text-capitalize ps-3">1. Lịch sử xuất hàng (Chờ tạo sản phẩm)</h6>
+              </div>
+            </div>
+            <div class="card-body px-0 pb-2">
+              <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0">
+                  <thead>
+                    <tr>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Mã Lô Xuất</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Sản phẩm gốc</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Số lượng</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody id="exportTableBody">
+                    </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <% if (error) { %>
+            <div class="alert alert-warning text-white mx-3">
+              <%= error %>
+            </div>
+          <% } %>
+          <div class="card">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+              <div class="bg-gradient-dark shadow-dark border-radius-lg pt-4 pb-3">
+                <h6 class="text-white text-capitalize ps-3">2. Kho sản phẩm thương mại</h6>
+              </div>
+            </div>
+            <div class="card-body px-0 pb-2">
+                <input type="hidden" id="farmId" value="<%= farmId %>">
+                <div class="table-responsive p-0">
+                  <table class="table align-items-center mb-0">
+                    <thead>
+                      <tr>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tên SP trên sàn</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tồn kho</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Giá niêm yết</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Trạng thái</th>
+                        <th class="text-secondary opacity-7"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="productTableBody">
+                      </tbody>
+                  </table>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <form id="productForm">
+          <div class="modal-header"><h5>Đưa sản phẩm lên sàn thương mại</h5></div>
+          <div class="modal-body">
+            <input type="hidden" id="exportBatchId" name="exportBatchId">
+            <input type="hidden" id="hiddenQuantity" name="quantity">
+            <input type="hidden" id="hiddenUnit" name="unit">
+
+            <div class="mb-3">
+                <label class="form-label">Tên sản phẩm hiển thị</label>
+                <input type="text" id="productName" name="name" class="form-control border px-2" required>
+            </div>
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label">Danh mục</label>
+                    <select name="category" class="form-control border px-2" required>
+                        <option value="FRUIT">Trái cây</option>
+                        <option value="VEGETABLE">Rau củ</option>
+                        <option value="GRAIN">Ngũ cốc</option>
+                        <option value="MEAT">Thịt</option>
+                        <option value="OTHER">Khác</option>
+                    </select>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label">Giá (VND)</label>
+                    <input type="number" name="price" class="form-control border px-2" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label">Số lượng</label>
+                    <input type="text" id="displayQuantity" class="form-control border px-2 bg-light" readonly>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label">Đơn vị</label>
+                    <input type="text" id="displayUnit" class="form-control border px-2 bg-light" readonly>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mô tả</label>
+                <textarea name="description" class="form-control border px-2" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Hình ảnh sản phẩm</label>
+                <input type="file" id="productImage" name="productImage" class="form-control border px-2" accept="image/*">
+                <small class="text-muted">Chọn ảnh (JPEG, PNG) - tối đa 10MB</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Xác nhận niêm yết</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Detail Modal -->
+  <div class="modal fade" id="productDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Chi tiết sản phẩm</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-4">
+              <img id="detailProductImg" src="" alt="" class="img-fluid rounded" style="max-height:240px;object-fit:cover" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f3f6f4%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo image%3C/text%3E%3C/svg%3E'">
+            </div>
+            <div class="col-md-8">
+              <h5 id="detailProductName" class="mb-2"></h5>
+              <p class="text-sm text-secondary mb-1"><strong>Lô:</strong> <span id="detailProductBatch"></span></p>
+              <p class="text-sm text-secondary mb-1"><strong>Danh mục:</strong> <span id="detailProductCategory"></span></p>
+              <p class="text-sm text-secondary mb-1"><strong>Số lượng:</strong> <span id="detailProductQty"></span> <span id="detailProductUnit"></span></p>
+              <p class="text-success fw-bold mb-2" id="detailProductPrice"></p>
+              <p class="text-sm" id="detailProductDesc"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/core/popper.min.js"></script>
+  <script src="/assets/js/core/bootstrap.min.js"></script>
+  <script src="/assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="/assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="/assets/js/material-dashboard.min.js?v=3.2.0"></script>
+  <script>
+    // Immediate execution to show navigation
+    (function() {
+      function showNavigation() {
+        const sidenavCollapse = document.getElementById('sidenav-collapse-main');
+        if (sidenavCollapse) {
+          sidenavCollapse.classList.add('show');
+          sidenavCollapse.style.display = 'block';
+          sidenavCollapse.style.visibility = 'visible';
+          sidenavCollapse.style.opacity = '1';
+        }
+        
+        const navItems = document.querySelectorAll('.sidenav .nav-item');
+        navItems.forEach(item => {
+          item.style.display = 'block';
+          item.style.visibility = 'visible';
+          item.style.opacity = '1';
+        });
+        
+        const navLinks = document.querySelectorAll('.sidenav .nav-link');
+        navLinks.forEach(link => {
+          link.style.display = 'flex';
+          link.style.visibility = 'visible';
+          link.style.opacity = '1';
+        });
+      }
+      
+      // Run immediately
+      showNavigation();
+      
+      // Also run on DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', function() {
+        showNavigation();
+        
+        // Logout button handler
+        const logoutButton = document.getElementById('logout-button');
+        if (logoutButton) {
+          logoutButton.addEventListener('click', async function(event) {
+            event.preventDefault();
+            try {
+              const response = await fetch('/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+              });
+              window.location.href = '/login';
+            } catch (error) {
+              console.error('Error during logout:', error);
+              window.location.href = '/login';
+            }
+          });
+        }
+      });
+      
+      // Also run after delays to catch any late-loading issues
+      setTimeout(showNavigation, 100);
+      setTimeout(showNavigation, 500);
+    })();
+  </script>
+  <script>
+    const farmId = document.getElementById('farmId').value;
+    let exportBatches = [];
+    let marketplaceProducts = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!farmId) {
+            return;
+        }
+        fetchExportBatches();
+        fetchMarketplaceProducts();
+    });
+
+    // 1. Lấy lịch sử xuất hàng
+    async function fetchExportBatches() {
+      const res = await fetch('/api/export-batches');
+      exportBatches = await res.json();
+      const tbody = document.getElementById('exportTableBody');
+      tbody.innerHTML = exportBatches.map((batch, index) => `
+        <tr>
+          <td class="ps-4 text-xs font-weight-bold">${batch.batchCode}</td>
+          <td class="text-xs">${batch.productionBatch?.productType || 'N/A'}</td>
+          <td class="text-center text-sm">${batch.quantity} ${batch.unit}</td>
+          <td class="text-center">
+            ${batch.marketplaceProduct 
+              ? '<span class="badge badge-sm bg-light text-dark border">Đã có trong kho</span>' 
+              : `<button class="btn btn-sm btn-outline-success" onclick="openModal(${index})">Tạo sản phẩm</button>`}
+          </td>
+        </tr>`).join('');
+    }
+
+    // 2. Lấy kho sản phẩm
+    async function fetchMarketplaceProducts() {
+        const res = await fetch(`/api/marketplace-products/farm/${farmId}`);
+        marketplaceProducts = await res.json();
+        const products = marketplaceProducts;
+        const tbody = document.getElementById('productTableBody');
+        tbody.innerHTML = products.map(p => {
+            const statusClass = p.status === 'APPROVED' ? 'bg-gradient-success' : 'bg-gradient-warning';
+            const imgFallback = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect fill=%22%23f3f6f4%22 width=%2240%22 height=%2240%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%228%22%3E?%3C/text%3E%3C/svg%3E";
+            const thumbSrc = p.imageUrl ? p.imageUrl : imgFallback;
+            return `
+            <tr>
+                <td class="ps-4">
+                    <div class="d-flex align-items-center">
+                        <img src="${thumbSrc}" alt="${p.name}" class="rounded me-2" style="width:40px;height:40px;object-fit:cover" onerror="this.onerror=null;this.src='${imgFallback}'">
+                        <div class="d-flex flex-column">
+                            <h6 class="mb-0 text-sm">${p.name}</h6>
+                            <p class="text-xxs text-secondary mb-0">Lô: ${p.exportBatch?.batchCode || 'N/A'}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center text-sm">${p.quantity} ${p.unit}</td>
+                <td class="text-center text-sm">${Number(p.price).toLocaleString()}đ</td>
+                <td class="text-center"><span class="badge badge-sm ${statusClass}">${p.status}</span></td>
+                <td class="text-center">
+                    <button class="btn btn-link text-info btn-sm me-1" onclick="viewProductDetail(${p.id})" title="Xem chi tiết">Xem</button>
+                    <button class="btn btn-link text-danger btn-sm" onclick="deleteProduct(${p.id})">Gỡ bỏ</button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    async function deleteProduct(productId) {
+        if (!confirm('Bạn có chắc muốn gỡ sản phẩm này?')) return;
+        try {
+            const res = await fetch(`/api/marketplace-products/${productId}`, { method: 'DELETE', credentials: 'include' });
+            if (res.ok) {
+                alert('Đã gỡ sản phẩm');
+                location.reload();
+            } else {
+                alert('Không thể gỡ sản phẩm');
+            }
+        } catch (e) {
+            alert('Lỗi: ' + e.message);
+        }
+    }
+
+    function viewProductDetail(productId) {
+        const p = marketplaceProducts.find(x => x.id == productId);
+        if (!p) return;
+        const imgFallback = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f3f6f4%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo image%3C/text%3E%3C/svg%3E";
+        const img = document.getElementById('detailProductImg');
+        img.src = p.imageUrl ? p.imageUrl : imgFallback;
+        document.getElementById('detailProductName').textContent = p.name || '';
+        document.getElementById('detailProductBatch').textContent = p.exportBatch?.batchCode || 'N/A';
+        document.getElementById('detailProductCategory').textContent = p.category || 'N/A';
+        document.getElementById('detailProductQty').textContent = p.quantity || '0';
+        document.getElementById('detailProductUnit').textContent = p.unit || '';
+        document.getElementById('detailProductPrice').textContent = (p.price ? Number(p.price).toLocaleString() : '0') + ' đ';
+        document.getElementById('detailProductDesc').textContent = p.description || 'Không có mô tả.';
+        const modal = new bootstrap.Modal(document.getElementById('productDetailModal'));
+        modal.show();
+    }
+
+    function openModal(index) {
+        const batch = exportBatches[index];
+        if (!batch) return;
+
+        document.getElementById('exportBatchId').value = batch.id;
+        document.getElementById('productName').value = batch.productionBatch?.productType || '';
+        
+        document.getElementById('hiddenQuantity').value = batch.quantity;
+        document.getElementById('hiddenUnit').value = batch.unit;
+        document.getElementById('displayQuantity').value = batch.quantity;
+        document.getElementById('displayUnit').value = batch.unit;
+        
+        const modalEl = document.getElementById('productModal');
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
+    // Xử lý submit form và reload cả 2 bảng
+    document.getElementById('productForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const imageFile = form.querySelector('#productImage').files[0];
+
+        // Build JSON payload (exclude file input)
+        const data = {
+            exportBatchId: formData.get('exportBatchId'),
+            name: formData.get('name'),
+            category: formData.get('category'),
+            description: formData.get('description'),
+            quantity: Number(formData.get('quantity')),
+            price: Number(formData.get('price')),
+            unit: formData.get('unit'),
+            farmId: farmId
+        };
+
+        try {
+            const createRes = await fetch('/api/marketplace-products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!createRes.ok) {
+                const err = await createRes.json().catch(() => ({}));
+                throw new Error(err.error || 'Không thể tạo sản phẩm');
+            }
+
+            const product = await createRes.json();
+
+            // Nếu có ảnh, tải lên farm-production-service endpoint (nó sẽ cập nhật product.imageUrl)
+            if (imageFile && product.id) {
+                const uploadForm = new FormData();
+                uploadForm.append('file', imageFile);
+                uploadForm.append('farmId', farmId);
+
+                const uploadRes = await fetch(`/api/marketplace-products/${product.id}/images`, {
+                    method: 'POST',
+                    body: uploadForm,
+                    credentials: 'include'
+                });
+
+                if (!uploadRes.ok) {
+                    const err = await uploadRes.json().catch(() => ({}));
+                    console.warn('Tạo sản phẩm thành công nhưng tải ảnh thất bại:', err.error);
+                }
+            }
+
+            alert('Đã thêm vào kho sản phẩm!');
+            location.reload();
+        } catch (err) {
+            alert('Lỗi: ' + err.message);
+        }
+    };
+  </script>
+</body>
+</html>

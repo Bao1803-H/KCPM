@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="apple-touch-icon" sizes="76x76" href="/assets/img/apple-icon.png">
+  <link rel="icon" type="image/png" href="/assets/img/favicon.png">
+  <title>Chỉnh sửa thông tin - <%= farm ? farm.farmName : '' %></title>
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
+  <link href="/assets/css/nucleo-icons.css" rel="stylesheet" />
+  <link href="/assets/css/nucleo-svg.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link id="pagestyle" href="/assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+  <style>
+    /* Navigation Styles */
+    .sidenav {
+      min-height: 100vh;
+    }
+    
+    .sidenav .navbar-nav {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .sidenav .nav-item {
+      margin-bottom: 4px;
+    }
+    
+    .sidenav .nav-link {
+      display: flex !important;
+      align-items: center;
+      padding: 12px 16px;
+      margin: 6px 12px;
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #344767 !important;
+      font-weight: 500;
+      position: relative;
+      text-decoration: none;
+      width: auto;
+      min-height: 44px;
+    }
+    
+    .sidenav .nav-link i {
+      font-size: 20px !important;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+    
+    .sidenav .nav-link .nav-link-text {
+      font-size: 14px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    
+    /* Inactive nav link hover */
+    .sidenav .nav-link:not(.active):hover {
+      background-color: rgba(67, 160, 71, 0.08) !important;
+      color: #43A047 !important;
+      transform: translateX(4px);
+    }
+    
+    .sidenav .nav-link:not(.active):hover i {
+      opacity: 1;
+      color: #43A047;
+    }
+    
+    /* Active nav link */
+    .sidenav .nav-link.active {
+      background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
+    }
+    
+    .sidenav .nav-link.active i {
+      opacity: 1;
+      color: #ffffff !important;
+    }
+    
+    .sidenav .nav-link.active .nav-link-text {
+      font-weight: 600;
+      color: #ffffff !important;
+    }
+    
+    /* Account section divider */
+    .sidenav .nav-item.mt-3 h6 {
+      padding: 8px 16px;
+      margin: 16px 12px 8px 12px;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      color: #7b809a;
+      font-weight: 600;
+    }
+    
+    /* Ensure sidenav is visible */
+    #sidenav-collapse-main {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    #sidenav-collapse-main.show {
+      display: block !important;
+    }
+    
+    .sidenav .navbar-nav {
+      display: block !important;
+    }
+    
+    .sidenav-footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding-bottom: 20px;
+    }
+    
+    /* Make sure all nav items are visible */
+    .sidenav .nav-item {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    /* Fix for Material Dashboard override */
+    .sidenav .nav-link.text-dark {
+      color: #344767 !important;
+    }
+  </style>
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-radius-lg fixed-start ms-2 bg-white my-2" id="sidenav-main">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-dark opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand px-4 py-3 m-0" href="/dashboard">
+        <div class="d-flex align-items-center">
+          <i class="material-symbols-rounded text-success me-2" style="font-size: 28px;">agriculture</i>
+          <span class="ms-1 text-sm text-dark font-weight-bolder">BICAP Farm</span>
+        </div>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0 mb-2">
+    <div class="collapse navbar-collapse w-auto show" id="sidenav-collapse-main" style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+      <ul class="navbar-nav" style="display: block !important; visibility: visible !important;">
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard">
+            <i class="material-symbols-rounded">dashboard</i>
+            <span class="nav-link-text">Dashboard</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/products">
+            <i class="material-symbols-rounded">storefront</i>
+            <span class="nav-link-text">Product Management</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/shipping">
+            <i class="material-symbols-rounded">local_shipping</i>
+            <span class="nav-link-text">Shipping</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/season-monitor">
+            <i class="material-symbols-rounded">grass</i>
+            <span class="nav-link-text">Season Monitor</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link active" href="/farm-info">
+            <i class="material-symbols-rounded">agriculture</i>
+            <span class="nav-link-text">Farm Information</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/notifications">
+            <i class="material-symbols-rounded">notifications</i>
+            <span class="nav-link-text">Notifications</span>
+          </a>
+        </li>
+
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs text-dark font-weight-bolder opacity-5">Account</h6>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/profile">
+            <i class="material-symbols-rounded">person</i>
+            <span class="nav-link-text">Profile</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/logout" id="logout-button">
+            <i class="material-symbols-rounded">logout</i>
+            <span class="nav-link-text">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="sidenav-footer position-absolute w-100 bottom-0">
+      <div class="mx-3 mb-3">
+        <div class="card bg-gradient-success shadow-sm" style="border-radius: 15px; background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%);">
+          <div class="card-body p-3 text-center text-white">
+            <i class="material-symbols-rounded mb-2" style="font-size: 32px;">agriculture</i>
+            <p class="text-sm mb-0 font-weight-bold">BICAP Farm</p>
+            <p class="text-xs mb-0 opacity-8">Management System</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-3 shadow-none border-radius-xl" id="navbarBlur" data-scroll="true">
+     <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Pages</a></li>
+            <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Edit Farm Information</li>
+          </ol>
+        </nav>
+        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+          <div class="ms-md-auto pe-md-3 d-flex align-items-center">
+            <div class="input-group input-group-outline">
+              <label class="form-label">Type here...</label>
+              <input type="text" class="form-control">
+            </div>
+          </div>
+          <ul class="navbar-nav d-flex align-items-center  justify-content-end">
+            
+            
+            <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
+              <a href="javascript:;" class="nav-link text-body p-0" id="iconNavbarSidenav">
+                <div class="sidenav-toggler-inner">
+                  <i class="sidenav-toggler-line"></i>
+                  <i class="sidenav-toggler-line"></i>
+                  <i class="sidenav-toggler-line"></i>
+                </div>
+              </a>
+            </li>
+            <li class="nav-item px-3 d-flex align-items-center">
+              <a href="javascript:;" class="nav-link text-body p-0">
+                <i class="material-symbols-rounded fixed-plugin-button-nav">settings</i>
+              </a>
+            </li>
+            <li class="nav-item dropdown pe-3 d-flex align-items-center">
+              <a href="javascript:;" class="nav-link text-body p-0" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="material-symbols-rounded">notifications</i>
+              </a>
+              <ul class="dropdown-menu  dropdown-menu-end  px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
+                <li class="mb-2">
+                  <a class="dropdown-item border-radius-md" href="javascript:;">
+                    <div class="d-flex py-1">
+                      <div class="my-auto">
+                        <img src="/assets/img/team-2.jpg" class="avatar avatar-sm  me-3 ">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="text-sm font-weight-normal mb-1">
+                          <span class="font-weight-bold">New message</span> from Laur
+                        </h6>
+                        <p class="text-xs text-secondary mb-0">
+                          <i class="fa fa-clock me-1"></i>
+                          13 minutes ago
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+                <li class="mb-2">
+                  <a class="dropdown-item border-radius-md" href="javascript:;">
+                    <div class="d-flex py-1">
+                      <div class="my-auto">
+                        <img src="/assets/img/small-logos/logo-spotify.svg" class="avatar avatar-sm bg-gradient-dark  me-3 ">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="text-sm font-weight-normal mb-1">
+                          <span class="font-weight-bold">New album</span> by Travis Scott
+                        </h6>
+                        <p class="text-xs text-secondary mb-0">
+                          <i class="fa fa-clock me-1"></i>
+                          1 day
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item border-radius-md" href="javascript:;">
+                    <div class="d-flex py-1">
+                      <div class="avatar avatar-sm bg-gradient-secondary  me-3  my-auto">
+                        <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                          <title>credit-card</title>
+                          <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                            <g transform="translate(-2169.000000, -745.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                              <g transform="translate(1716.000000, 291.000000)">
+                                <g transform="translate(453.000000, 454.000000)">
+                                  <path class="color-background" d="M43,10.7482083 L43,3.58333333 C43,1.60354167 41.3964583,0 39.4166667,0 L3.58333333,0 C1.60354167,0 0,1.60354167 0,3.58333333 L0,10.7482083 L43,10.7482083 Z" opacity="0.593633743"></path>
+                                  <path class="color-background" d="M0,16.125 L0,32.25 C0,34.2297917 1.60354167,35.8333333 3.58333333,35.8333333 L39.4166667,35.8333333 C41.3964583,35.8333333 43,34.2297917 43,32.25 L43,16.125 L0,16.125 Z M19.7083333,26.875 L7.16666667,26.875 L7.16666667,23.2916667 L19.7083333,23.2916667 L19.7083333,26.875 Z M35.8333333,26.875 L28.6666667,26.875 L28.6666667,23.2916667 L35.8333333,23.2916667 L35.8333333,26.875 Z"></path>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </svg>
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="text-sm font-weight-normal mb-1">
+                          Payment successfully completed
+                        </h6>
+                        <p class="text-xs text-secondary mb-0">
+                          <i class="fa fa-clock me-1"></i>
+                          2 days
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item d-flex align-items-center">
+              <a href="/profile" class="nav-link text-body font-weight-bold px-0">
+                <i class="material-symbols-rounded">account_circle</i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="container-fluid px-2 px-md-4">
+      <div class="page-header min-height-300 border-radius-xl mt-4" style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1932&q=80');">
+        <span class="mask bg-gradient-dark opacity-6"></span>
+      </div>
+      
+      <div class="card card-body mx-3 mx-md-4 mt-n6">
+        <div class="row mb-4">
+          <div class="col-md-8 d-flex align-items-center">
+            <h5 class="mb-0">Cập nhật thông tin</h5>
+          </div>
+          <div class="col-md-4 text-end">
+            <a href="/farm-info" class="btn btn-light mb-0">
+              <i class="material-symbols-rounded text-sm me-1">arrow_back</i> Hủy bỏ
+            </a>
+            <button type="submit" form="editFarmForm" class="btn bg-gradient-success mb-0 ms-2">
+              <i class="material-symbols-rounded text-sm me-1">save</i> Lưu thay đổi
+            </button>
+          </div>
+        </div>
+
+        <form id="editFarmForm" action="/farm-info/update" method="POST">
+          <div class="row">
+            <div class="col-12 col-xl-8">
+              
+              <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">1. Thông tin cơ bản</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Tên trang trại</label>
+                    <input type="text" class="form-control" name="farmName" value="<%= farm ? farm.farmName : '' %>" required>
+                  </div>
+                </div>                
+                <div class="col-md-6">
+                  <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Ngày thành lập</label>
+                    <input type="date" class="form-control" name="establishedDate" value="<%= farm && farm.createdAt ? new Date(farm.createdAt).toISOString().split('T')[0] : '' %>">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Diện tích (Ha)</label>
+                    <input type="number" class="form-control" name="area" value="<%= farm ? farm.areaSize : '' %>">
+                  </div>
+                </div>
+              </div>
+
+              <hr class="horizontal dark my-4">
+
+              <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">2. Liên hệ</h6>
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Địa chỉ chi tiết</label>
+                    <input type="text" class="form-control" name="address" value="<%= farm ? farm.address : '' %>">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Số điện thoại Hotline</label>
+                    <input type="tel" class="form-control" name="phone" value="<%= farm ? farm.hotline : '' %>">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                   <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Email liên hệ</label>
+                    <input type="email" class="form-control" name="email" value="<%= farm ? farm.email : '' %>">
+                  </div>
+                </div>
+              </div>
+
+              <hr class="horizontal dark my-4">
+
+              <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">3. Mô tả</h6>
+              <div class="row">
+                <div class="col-md-12">
+                   <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Giới thiệu ngắn</label>
+                    <textarea class="form-control" name="description" rows="4"><%= farm ? farm.description : '' %></textarea>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="col-12 col-xl-4 mt-4 mt-xl-0">
+               <div class="card card-plain border bg-gray-100">
+                  <div class="card-body p-3">
+                    <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">
+                      <i class="material-symbols-rounded text-sm me-1">lock</i> Chủ sở hữu
+                    </h6>
+                    <div class="text-center mb-3">
+                      <img src="<%= user.avatar || '/assets/img/bruce-mars.jpg' %>" alt="owner" class="avatar avatar-xxl shadow-sm border-radius-lg">
+                    </div>
+                    <div class="input-group input-group-static my-3">
+                      <label>Họ và tên</label>
+                      <input type="text" class="form-control" value="<%= user.username || 'Unknown' %>" readonly>
+                    </div>
+                    <div class="input-group input-group-static my-3">
+                      <label>Chức vụ</label>
+                      <input type="text" class="form-control" value="Chủ nhiệm HTX" readonly>
+                    </div>                                
+                  </div>
+                </div>
+
+                <div class="card card-plain border mt-4 bg-gray-100">
+                   <div class="card-body p-3">
+                    <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">
+                      <i class="material-symbols-rounded text-sm me-1">verified</i> Chứng nhận
+                    </h6>
+                    <p class="text-xs text-muted mb-0 text-center mt-3">*Thông tin được quản lý bởi Admin.</p>
+                    <div class="form-check form-switch ps-0">
+                        <input class="form-check-input ms-auto" type="checkbox" id="certVietGap" checked disabled>
+                        <label class="form-check-label text-body ms-3 text-truncate w-80 mb-0" for="certVietGap">Đạt chuẩn VietGAP</label>
+                      </div>
+                      <div class="form-check form-switch ps-0">
+                        <input class="form-check-input ms-auto" type="checkbox" id="certGlobalGap" disabled>
+                        <label class="form-check-label text-body ms-3 text-truncate w-80 mb-0" for="certGlobalGap">Đạt chuẩn GlobalGAP</label>
+                      </div>
+                  </div>
+               </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <footer class="footer py-4">
+        <div class="container-fluid">
+          <div class="row align-items-center justify-content-lg-between">
+            <div class="col-lg-6 mb-lg-0 mb-4">
+               <div class="copyright text-center text-sm text-muted text-lg-start">
+                © <script>document.write(new Date().getFullYear())</script>, made with <i class="fa fa-heart"></i> by BiCap Team.
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <script src="/assets/js/core/popper.min.js"></script>
+  <script src="/assets/js/core/bootstrap.min.js"></script>
+  <script src="/assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="/assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script>
+    var win = navigator.platform.indexOf('Win') > -1;
+    if (win && document.querySelector('#sidenav-scrollbar')) {
+      var options = { damping: '0.5' }
+      Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
+    }
+  </script>
+  <script src="/assets/js/material-dashboard.min.js?v=3.2.0"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const logoutButton = document.getElementById('logout-button');
+      if (logoutButton) {
+        logoutButton.addEventListener('click', async function(event) {
+          event.preventDefault();
+          try {
+            const response = await fetch('/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }});
+            window.location.href = '/login'; 
+          } catch (error) { window.location.href = '/login'; }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-3 shadow-none border-radius-xl" id="navbarBlur" data-scroll="true">
+     <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Pages</a></li>
+            <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Edit Farm Information</li>
+          </ol>
+        </nav>
+        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+          <div class="ms-md-auto pe-md-3 d-flex align-items-center">
+            <div class="input-group input-group-outline">
+              <label class="form-label">Type here...</label>
+              <input type="text" class="form-control">
+            </div>
+          </div>
+          <ul class="navbar-nav d-flex align-items-center  justify-content-end">
+            
+            
+            <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
+              <a href="javascript:;" class="nav-link text-body p-0" id="iconNavbarSidenav">
+                <div class="sidenav-toggler-inner">
+                  <i class="sidenav-toggler-line"></i>
+                  <i class="sidenav-toggler-line"></i>
+                  <i class="sidenav-toggler-line"></i>
+                </div>
+              </a>
+            </li>
+            <li class="nav-item px-3 d-flex align-items-center">
+              <a href="javascript:;" class="nav-link text-body p-0">
+                <i class="material-symbols-rounded fixed-plugin-button-nav">settings</i>
+              </a>
+            </li>
+            <li class="nav-item dropdown pe-3 d-flex align-items-center">
+              <a href="javascript:;" class="nav-link text-body p-0" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="material-symbols-rounded">notifications</i>
+              </a>
+              <ul class="dropdown-menu  dropdown-menu-end  px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
+                <li class="mb-2">
+                  <a class="dropdown-item border-radius-md" href="javascript:;">
+                    <div class="d-flex py-1">
+                      <div class="my-auto">
+                        <img src="/assets/img/team-2.jpg" class="avatar avatar-sm  me-3 ">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="text-sm font-weight-normal mb-1">
+                          <span class="font-weight-bold">New message</span> from Laur
+                        </h6>
+                        <p class="text-xs text-secondary mb-0">
+                          <i class="fa fa-clock me-1"></i>
+                          13 minutes ago
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+                <li class="mb-2">
+                  <a class="dropdown-item border-radius-md" href="javascript:;">
+                    <div class="d-flex py-1">
+                      <div class="my-auto">
+                        <img src="/assets/img/small-logos/logo-spotify.svg" class="avatar avatar-sm bg-gradient-dark  me-3 ">
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="text-sm font-weight-normal mb-1">
+                          <span class="font-weight-bold">New album</span> by Travis Scott
+                        </h6>
+                        <p class="text-xs text-secondary mb-0">
+                          <i class="fa fa-clock me-1"></i>
+                          1 day
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item border-radius-md" href="javascript:;">
+                    <div class="d-flex py-1">
+                      <div class="avatar avatar-sm bg-gradient-secondary  me-3  my-auto">
+                        <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                          <title>credit-card</title>
+                          <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                            <g transform="translate(-2169.000000, -745.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                              <g transform="translate(1716.000000, 291.000000)">
+                                <g transform="translate(453.000000, 454.000000)">
+                                  <path class="color-background" d="M43,10.7482083 L43,3.58333333 C43,1.60354167 41.3964583,0 39.4166667,0 L3.58333333,0 C1.60354167,0 0,1.60354167 0,3.58333333 L0,10.7482083 L43,10.7482083 Z" opacity="0.593633743"></path>
+                                  <path class="color-background" d="M0,16.125 L0,32.25 C0,34.2297917 1.60354167,35.8333333 3.58333333,35.8333333 L39.4166667,35.8333333 C41.3964583,35.8333333 43,34.2297917 43,32.25 L43,16.125 L0,16.125 Z M19.7083333,26.875 L7.16666667,26.875 L7.16666667,23.2916667 L19.7083333,23.2916667 L19.7083333,26.875 Z M35.8333333,26.875 L28.6666667,26.875 L28.6666667,23.2916667 L35.8333333,23.2916667 L35.8333333,26.875 Z"></path>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </svg>
+                      </div>
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="text-sm font-weight-normal mb-1">
+                          Payment successfully completed
+                        </h6>
+                        <p class="text-xs text-secondary mb-0">
+                          <i class="fa fa-clock me-1"></i>
+                          2 days
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item d-flex align-items-center">
+              <a href="/profile" class="nav-link text-body font-weight-bold px-0">
+                <i class="material-symbols-rounded">account_circle</i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="container-fluid px-2 px-md-4">
+      <div class="page-header min-height-300 border-radius-xl mt-4" style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1932&q=80');">
+        <span class="mask bg-gradient-dark opacity-6"></span>
+      </div>
+      
+      <div class="card card-body mx-3 mx-md-4 mt-n6">
+        <div class="row mb-4">
+          <div class="col-md-8 d-flex align-items-center">
+            <h5 class="mb-0">Cập nhật thông tin</h5>
+          </div>
+          <div class="col-md-4 text-end">
+            <a href="/farm-info" class="btn btn-light mb-0">
+              <i class="material-symbols-rounded text-sm me-1">arrow_back</i> Hủy bỏ
+            </a>
+            <button type="submit" form="editFarmForm" class="btn bg-gradient-success mb-0 ms-2">
+              <i class="material-symbols-rounded text-sm me-1">save</i> Lưu thay đổi
+            </button>
+          </div>
+        </div>
+
+        <form id="editFarmForm" action="/farm-info/update" method="POST">
+          <div class="row">
+            <div class="col-12 col-xl-8">
+              
+              <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">1. Thông tin cơ bản</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Tên trang trại</label>
+                    <input type="text" class="form-control" name="farmName" value="<%= farm ? farm.farmName : '' %>" required>
+                  </div>
+                </div>                
+                <div class="col-md-6">
+                  <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Ngày thành lập</label>
+                    <input type="date" class="form-control" name="establishedDate" value="<%= farm && farm.createdAt ? new Date(farm.createdAt).toISOString().split('T')[0] : '' %>">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Diện tích (Ha)</label>
+                    <input type="number" class="form-control" name="area" value="<%= farm ? farm.areaSize : '' %>">
+                  </div>
+                </div>
+              </div>
+
+              <hr class="horizontal dark my-4">
+
+              <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">2. Liên hệ</h6>
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Địa chỉ chi tiết</label>
+                    <input type="text" class="form-control" name="address" value="<%= farm ? farm.address : '' %>">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Số điện thoại Hotline</label>
+                    <input type="tel" class="form-control" name="phone" value="<%= farm ? farm.hotline : '' %>">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                   <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Email liên hệ</label>
+                    <input type="email" class="form-control" name="email" value="<%= farm ? farm.email : '' %>">
+                  </div>
+                </div>
+              </div>
+
+              <hr class="horizontal dark my-4">
+
+              <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">3. Mô tả</h6>
+              <div class="row">
+                <div class="col-md-12">
+                   <div class="input-group input-group-outline my-3 is-filled">
+                    <label class="form-label">Giới thiệu ngắn</label>
+                    <textarea class="form-control" name="description" rows="4"><%= farm ? farm.description : '' %></textarea>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="col-12 col-xl-4 mt-4 mt-xl-0">
+               <div class="card card-plain border bg-gray-100">
+                  <div class="card-body p-3">
+                    <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">
+                      <i class="material-symbols-rounded text-sm me-1">lock</i> Chủ sở hữu
+                    </h6>
+                    <div class="text-center mb-3">
+                      <img src="<%= user.avatar || '/assets/img/bruce-mars.jpg' %>" alt="owner" class="avatar avatar-xxl shadow-sm border-radius-lg">
+                    </div>
+                    <div class="input-group input-group-static my-3">
+                      <label>Họ và tên</label>
+                      <input type="text" class="form-control" value="<%= user.username || 'Unknown' %>" readonly>
+                    </div>
+                    <div class="input-group input-group-static my-3">
+                      <label>Chức vụ</label>
+                      <input type="text" class="form-control" value="Chủ nhiệm HTX" readonly>
+                    </div>                                
+                  </div>
+                </div>
+
+                <div class="card card-plain border mt-4 bg-gray-100">
+                   <div class="card-body p-3">
+                    <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">
+                      <i class="material-symbols-rounded text-sm me-1">verified</i> Chứng nhận
+                    </h6>
+                    <p class="text-xs text-muted mb-0 text-center mt-3">*Thông tin được quản lý bởi Admin.</p>
+                    <div class="form-check form-switch ps-0">
+                        <input class="form-check-input ms-auto" type="checkbox" id="certVietGap" checked disabled>
+                        <label class="form-check-label text-body ms-3 text-truncate w-80 mb-0" for="certVietGap">Đạt chuẩn VietGAP</label>
+                      </div>
+                      <div class="form-check form-switch ps-0">
+                        <input class="form-check-input ms-auto" type="checkbox" id="certGlobalGap" disabled>
+                        <label class="form-check-label text-body ms-3 text-truncate w-80 mb-0" for="certGlobalGap">Đạt chuẩn GlobalGAP</label>
+                      </div>
+                  </div>
+               </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <footer class="footer py-4">
+        <div class="container-fluid">
+          <div class="row align-items-center justify-content-lg-between">
+            <div class="col-lg-6 mb-lg-0 mb-4">
+               <div class="copyright text-center text-sm text-muted text-lg-start">
+                © <script>document.write(new Date().getFullYear())</script>, made with <i class="fa fa-heart"></i> by BiCap Team.
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <script src="/assets/js/core/popper.min.js"></script>
+  <script src="/assets/js/core/bootstrap.min.js"></script>
+  <script src="/assets/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="/assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script>
+    var win = navigator.platform.indexOf('Win') > -1;
+    if (win && document.querySelector('#sidenav-scrollbar')) {
+      var options = { damping: '0.5' }
+      Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
+    }
+  </script>
+  <script src="/assets/js/material-dashboard.min.js?v=3.2.0"></script>
+  <script>
+    // Immediate execution to show navigation
+    (function() {
+      function showNavigation() {
+        const sidenavCollapse = document.getElementById('sidenav-collapse-main');
+        if (sidenavCollapse) {
+          sidenavCollapse.classList.add('show');
+          sidenavCollapse.style.display = 'block';
+          sidenavCollapse.style.visibility = 'visible';
+          sidenavCollapse.style.opacity = '1';
+        }
+        
+        const navItems = document.querySelectorAll('.sidenav .nav-item');
+        navItems.forEach(item => {
+          item.style.display = 'block';
+          item.style.visibility = 'visible';
+          item.style.opacity = '1';
+        });
+        
+        const navLinks = document.querySelectorAll('.sidenav .nav-link');
+        navLinks.forEach(link => {
+          link.style.display = 'flex';
+          link.style.visibility = 'visible';
+          link.style.opacity = '1';
+        });
+      }
+      
+      // Run immediately
+      showNavigation();
+      
+      // Also run on DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', function() {
+        showNavigation();
+        
+        const logoutButton = document.getElementById('logout-button');
+        if (logoutButton) {
+          logoutButton.addEventListener('click', async function(event) {
+            event.preventDefault();
+            try {
+              const response = await fetch('/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }});
+              window.location.href = '/login'; 
+            } catch (error) { window.location.href = '/login'; }
+          });
+        }
+      });
+      
+      // Also run after delays
+      setTimeout(showNavigation, 100);
+      setTimeout(showNavigation, 500);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Vận chuyển - Shipping Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="d-flex">
+        <%- include('../partials/sidebar') %>
+        
+        <div class="flex-grow-1 p-4" style="margin-left: 250px; background-color: #f8f9fa; min-height: 100vh;">
+            <h2 class="mb-4">🚚 Quản lý Vận chuyển</h2>
+            
+            <% if (typeof query !== 'undefined' && query.success) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <%= query.success %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+            <% if (typeof query !== 'undefined' && query.error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <%= query.error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Mã Vận Đơn</th>
+                                <th>Mã Đơn Hàng</th>
+                                <th>Tài xế / Xe</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (shipments && shipments.length > 0) { %>
+                                <% shipments.forEach(function(ship) { %>
+                                    <tr>
+                                        <td><strong><%= ship.id %></strong></td>
+                                        <td>#<%= ship.orderId %></td>
+                                        <td>
+                                            <% if (ship.driver && ship.vehicle) { %>
+                                                <div><%= ship.driver.name || 'N/A' %></div>
+                                                <small class="text-muted"><%= ship.vehicle.plate || 'N/A' %></small>
+                                            <% } else { %>
+                                                <span class="text-danger">Chưa gán</span>
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <% 
+                                                let statusClass = 'secondary';
+                                                let statusText = ship.status || 'UNKNOWN';
+                                                if (statusText === 'PENDING') statusClass = 'warning';
+                                                else if (statusText === 'ASSIGNED' || statusText === 'IN_TRANSIT') statusClass = 'primary';
+                                                else if (statusText === 'DELIVERED') statusClass = 'success';
+                                                else if (statusText === 'CANCELLED') statusClass = 'danger';
+                                            %>
+                                            <span class="badge bg-<%= statusClass %>">
+                                                <%= statusText %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <% if (ship.status === 'PENDING' || !ship.driver) { %>
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#assignModal<%= ship.id %>">
+                                                    Gán xe
+                                                </button>
+                                                
+                                                <!-- Modal Gán Xe -->
+                                                <div class="modal fade" id="assignModal<%= ship.id %>" tabindex="-1">
+                                                    <div class="modal-dialog">
+                                                        <form action="/shipments/assign" method="POST" class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Gán xe cho đơn <%= ship.id %></h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <input type="hidden" name="shipmentId" value="<%= ship.id %>">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Chọn Tài xế</label>
+                                                                    <select name="driverId" class="form-select" required>
+                                                                        <% if (drivers && drivers.length > 0) { %>
+                                                                            <% drivers.forEach(d => { %>
+                                                                                <option value="<%= d.id %>"><%= d.name %> (<%= d.license %>)</option>
+                                                                            <% }) %>
+                                                                        <% } else { %>
+                                                                            <option disabled>Chưa có tài xế</option>
+                                                                        <% } %>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Chọn Xe</label>
+                                                                    <select name="vehicleId" class="form-select" required>
+                                                                        <% if (vehicles && vehicles.length > 0) { %>
+                                                                            <% vehicles.forEach(v => { %>
+                                                                                <option value="<%= v.id %>"><%= v.plate %> - <%= v.type %></option>
+                                                                            <% }) %>
+                                                                        <% } else { %>
+                                                                            <option disabled>Chưa có xe</option>
+                                                                        <% } %>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                                                <button type="submit" class="btn btn-primary">Lưu</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            <% } else { %>
+                                                <span class="text-muted">Đã gán</span>
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr><td colspan="5" class="text-center">Chưa có chuyến vận chuyển nào.</td></tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <%- include('../partials/footer') %>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

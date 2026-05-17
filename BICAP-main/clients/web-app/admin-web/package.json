@@ -1,0 +1,26 @@
+{
+  "name": "admin-web",
+  "version": "1.0.0",
+  "description": "auth-service",
+  "main": "npm start",
+  "scripts": {
+    "start": "nodemon src/authentication.js",
+    "start:prod": "node src/authentication.js"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.1",
+    "cookie": "^1.1.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "environment": "^1.1.0",
+    "express": "^5.2.1",
+    "axios": "^1.7.9",
+    "jsonwebtoken": "^9.0.3",
+    "jwt-decode": "^4.0.0",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

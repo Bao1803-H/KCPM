@@ -1,0 +1,35 @@
+server:
+  port: 8084
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/bicap_blockchain_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    database-platform: org.hibernate.dialect.MySQLDialect
+  
+  # Cấu hình RabbitMQ khớp với các service khác
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: ${SPRING_RABBITMQ_USERNAME:root}
+    password: ${SPRING_RABBITMQ_PASSWORD:root}
+
+# SỬA: Định nghĩa tên Queue khớp với Farm Service
+bicap:
+  rabbitmq:
+    queue:
+      request: farm_request_queue
+      response: farm_response_queue
+    exchange: bicap_exchange
+    routing-key:
+      request: bicap_routing_key
+      response: bicap_routing_key_response

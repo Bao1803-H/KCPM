@@ -1,0 +1,980 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: admin-web
+    url: http://admin-web:3001
+    plugins:
+      - name: rate-limiting
+        config: 
+          minute: 10
+          policy: local
+      - name: file-log
+        config:
+          path: /tmp/kong/admin-web.log
+
+  - name: shipping-manager-web
+    url: http://shipping-manager-web:3003
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log 
+        config: 
+          path: /tmp/kong/shipping-manager-web.log
+
+  - name: farm-management-web
+    url: http://farm-management-web:3002
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log
+        config:
+          path: /tmp/kong/farm-management-web.log
+  
+  - name: farm-production-service
+    url: http://farm-production-service:8081
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log
+        config:
+          path: /tmp/kong/farm-production-service.log
+  - name: auth-service
+    url: http://auth-service:8080
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 20
+          policy: local
+      - name: file-log
+        config:
+          path: /tmp/kong/auth-service.log
+
+  - name: retailer-web
+    url: http://retailer-web:3000
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log
+        config:
+          path: /tmp/kong/retailer-web.log
+
+  - name: blockchain-adapter-service
+    url: http://blockchain-adapter-service:8084
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log
+        config:
+          path: /tmp/kong/blockchain-adapter-service.log
+
+  - name: trading-order-service
+    url: http://trading-order-service:8082
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log
+        config:       
+          path: /tmp/kong/trading-order-service.log
+
+  - name: shipping-manager-service
+    url: http://shipping-manager-service:8083
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log
+        config:
+          path: /tmp/kong/shipping-manager-service.log
+
+  - name: image-storage-service
+    url: http://image-storage-service:8086
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log
+        config:
+          path: /tmp/kong/image-storage-service.log
+
+  - name: mobile-ship-driver
+    url: http://mobile-ship-driver:19000
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log
+        config:
+          path: /tmp/kong/mobile-ship-driver.log
+
+routes:
+  # Blockchain API
+  - name: blockchain-api
+    service: blockchain-adapter-service
+    paths:
+      - /api/blockchain
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/blockchain-api.log
+
+  # Auth API (login/register called by retailer-web via Kong)
+  - name: auth-api
+    service: auth-service
+    paths:
+      - /api/auth
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 30
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Content-Type", "Authorization", "Accept"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/auth-service.log
+
+  # Update Profile API (for farm management web)
+  - name: update-profile-api
+    service: auth-service
+    paths:
+      - /api/update
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 30
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/auth-service.log
+
+  # New: Static uploads route for auth-service (e.g., /uploads/licenses/* for images)
+  - name: auth-static-uploads
+    service: auth-service
+    paths:
+      - /uploads
+    methods:
+      - GET
+      - HEAD
+      - OPTIONS
+    strip_path: false  # Preserve full path for Spring Boot static handler
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "HEAD", "OPTIONS"]
+          headers: ["Accept", "Content-Type"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/auth-service.log
+
+  # Image Storage API - Product Images
+  - name: image-storage-api
+    service: image-storage-service
+    paths:
+      - /api/images
+    methods:
+      - GET
+      - POST
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/image-storage-api.log
+
+  # New: Marketplace Products API
+  - name: marketplace-products-api
+    service: farm-production-service
+    paths:
+      - /api/marketplace-products
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/marketplace-products-api.log
+
+  # New: Retailer Marketplace API (for trading-order-service)
+  - name: retailer-marketplace-api
+    service: trading-order-service
+    paths:
+      - /api/fetch-marketplace-products
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/retailer-marketplace-api.log
+
+  # New: Farming Seasons API
+  - name: farming-seasons-api
+    service: farm-production-service
+    paths:
+      - /api/farming-seasons
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/farming-seasons-api.log
+
+  # --- START: FARM PRODUCTION SERVICE ROUTES (FOR SEASON MONITOR) ---
+
+  # Corrected: Route for creating and viewing seasons/batches
+  # Thêm request-transformer để forward Authorization header từ cookie (nếu có)
+  # Nếu Node.js đã gửi Authorization header, Kong sẽ forward header đó
+  # Nếu không có, sẽ extract từ cookie
+  - name: production-batches-api
+    service: farm-production-service
+    paths:
+      - /api/production-batches
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+          # Không replace header nếu đã có Authorization header từ Node.js
+          replace:
+            headers: []
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/production-batches-api.log
+
+  # New: Route for exporting batches and generating QR codes
+  - name: export-batches-api
+    service: farm-production-service
+    paths:
+      - /api/export-batches
+    methods:
+      - POST
+      - GET
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/export-batches-api.log
+
+  # Route for farming processes (update season progress)
+  - name: farming-processes-api
+    service: farm-production-service
+    paths:
+      - /api/farming-processes
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/farming-processes-api.log
+
+  # Route for farm features (get farm info)
+  - name: farm-features-api
+    service: farm-production-service
+    paths:
+      - /api/farm-features
+    methods:
+      - GET
+      - POST
+      - PUT
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/farm-features-api.log
+
+  # --- END: FARM PRODUCTION SERVICE ROUTES ---
+
+  # Shipping Manager Service API
+  - name: shipping-shipments-api
+    service: shipping-manager-service
+    paths:
+      - /api/shipments
+    methods:
+      - GET
+      - POST
+      - PUT
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/shipping-shipments-api.log
+
+  - name: shipping-drivers-api
+    service: shipping-manager-service
+    paths:
+      - /api/drivers
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/shipping-drivers-api.log
+
+  - name: shipping-vehicles-api
+    service: shipping-manager-service
+    paths:
+      - /api/vehicles
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/shipping-vehicles-api.log
+
+  # Shipping Manager Service - Confirmed Orders API (MUST come FIRST - more specific route)
+  # Routes: /api/orders/confirmed (for shipping managers to see confirmed orders)
+  - name: shipping-orders-api
+    service: shipping-manager-service
+    paths:
+      - /api/orders/confirmed
+    methods:
+      - GET
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/shipping-orders-api.log
+
+  # Trading Order Service - Payments API (retailer "Thanh toán" -> MoMo, etc.)
+  - name: trading-payments-api
+    service: trading-order-service
+    paths:
+      - /api/payments
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/trading-payments-api.log
+
+  # Trading Order Service - Orders API (general route - comes AFTER specific routes)
+  # Routes: /api/orders/my, /api/orders/me, /api/orders/by-farm/*, /api/orders/{id}/confirm, etc.
+  - name: trading-orders-api
+    service: trading-order-service
+    paths:
+      - /api/orders
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/trading-orders-api.log
+
+  - name: shipping-reports-api
+    service: shipping-manager-service
+    paths:
+      - /api/reports
+    methods:
+      - GET
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/shipping-reports-api.log
+
+  - name: shipping-notifications-api
+    service: shipping-manager-service
+    paths:
+      - /api/notifications
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /tmp/kong/shipping-notifications-api.log
+
+  # Public UI Routes (no JWT required)
+  - name: retailer-public
+    service: retailer-web
+    paths:
+      - /
+      - /login
+      - /register
+      - /css
+      - /js
+      - /index.html
+    strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type"]
+          credentials: true
+
+  - name: admin-public
+    service: admin-web
+    paths: 
+      - / 
+      - /login
+      - /register
+      - /admin
+      - /dashboard
+      - /css
+      - /js 
+      - /index
+      - /assets
+    strip_path: false
+    plugins: 
+      - name: cors
+        config: 
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+
+  - name: admin-api-proxy
+    service: admin-web
+    paths:
+      - /api/v1/admin
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer $(cookie_auth_token)"
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+
+  - name: shipping-manager-public
+    service: shipping-manager-web
+    paths:
+      - /
+      - /login
+      - /register
+      - /css
+      - /js
+      - /index.html
+    strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type"]
+          credentials: true
+          
+  - name: farm-management-public
+    service: farm-management-web
+    paths:
+      - /
+      - /login
+      - /register
+      - /css
+      - /js
+      - /index.html
+      - /assets  # Added for farm-management-web static assets
+      - /src     # Added for farm-management-web scripts
+      - /public  # Added for farm-management-web uploads/public
+      - /uploads  # Added for uploaded files
+    strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type"]
+          credentials: true
+
+  # Farm Management Web API Routes (internal API endpoints)
+  - name: farm-management-api
+    service: farm-management-web
+    paths:
+      - /api/season-monitor
+      - /api/notifications
+      - /api/update
+      - /upload
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+
+  # Protected Routes (requires valid JWT from auth-service)
+  - name: retailer-protected
+    service: retailer-web
+    hosts: ["localhost"]
+    paths:
+      - /dashboard
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer ${retailer_token}"
+      - name: jwt
+        config:
+          cookie_names: [retailer_token]
+          header_names: [Authorization]
+          claims_to_verify: [exp]
+          secret_is_base64: true
+      - name: acl
+        config:
+          allow: [retailer]
+          hide_groups_header: true
+
+  - name: admin-protected
+    service: admin-web
+    hosts: ["localhost"]
+    paths:
+      - /dashboard
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer ${admin_token}"
+      - name: jwt
+        config:
+          cookie_names: [admin_token]
+          header_names: [Authorization]
+          claims_to_verify: [exp]
+          secret_is_base64: true
+      - name: acl
+        config:
+          allow: [admin]
+          hide_groups_header: true
+ 
+  - name: shipping-manager-protected
+    service: shipping-manager-web
+    hosts: ["localhost"]
+    paths:
+      - /dashboard
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer ${shipping_manager_token}"
+      - name: jwt
+        config:
+          cookie_names: [shipping_manager_token]
+          header_names: [Authorization]
+          claims_to_verify: [exp]
+          secret_is_base64: true
+      - name: acl
+        config:
+          allow: [shippingmanager]
+          hide_groups_header: true
+          
+  - name: farm-management-protected
+    service: farm-management-web
+    hosts: ["localhost"]
+    paths:
+      - /dashboard
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer ${farm_token}"
+      - name: jwt
+        config:
+          cookie_names: [farm_token]
+          header_names: [Authorization]
+          claims_to_verify: [exp]
+          secret_is_base64: true
+      - name: acl
+        config:
+          allow: [farmmanagement]
+          hide_groups_header: true
+      - name: cors  # Added for protected farm routes (e.g., if fetching auth-protected resources)
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+
+  # Shipping driver protected (if serving a web/mobile UI through Kong)
+  - name: shipping-driver-protected
+    service: mobile-ship-driver
+    hosts: ["localhost"]
+    paths:
+      - /shipping-driver
+    strip_path: false
+    plugins:
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: Bearer ${shipping_driver_token}"
+      - name: jwt
+        config:
+          cookie_names: [shipping_driver_token]
+          header_names: [Authorization]
+          claims_to_verify: [exp]
+          secret_is_base64: true
+      - name: acl
+        config:
+          allow: [shippingdriver]
+          hide_groups_header: true
+
+consumers:
+  - username: retailer-app-user
+    keyauth_credentials:
+      - key: retailer-secret-key  # Use in fetch headers if key-auth on auth-api
+    acls:
+      - group: retailer
+    jwt_secrets:
+      - key: retailer-app  # Issuer in JWT has to match with key named retailer-app
+        algorithm: HS256
+        secret: YmljYXAtand0LXJldGFpbGVyLXJvbGUtc2VjcmV0LWtleS1hdXRoISEh
+
+  - username: admin-app-user
+    keyauth_credentials:
+      - key: admin-secret-key
+    acls:
+      - group: admin
+    jwt_secrets:
+      - key: admin-app
+        algorithm: HS256
+        secret: YmljYXAtand0LWFkbWluLXJvbGUtc2VjcmV0LWtleS1hdXRoISEhIQ==
+        
+  - username: shipping-manager-app-user
+    keyauth_credentials:
+      - key: shipping-manager-secret-key
+    acls:
+      - group: shippingmanager
+    jwt_secrets:
+      - key: shipping-manager-app
+        algorithm: HS256
+        secret: YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==
+
+  - username: farm-management-app-user
+    keyauth_credentials:
+      - key: farm-management-secret-key
+    acls:
+      - group: farmmanagement
+    jwt_secrets:
+      - key: farm-management-app
+        algorithm: HS256
+        secret: YmljYXAtand0LWZhcm0tcm9sZS1zZWNyZXQta2V5LWF1dGghISEhISEh
+
+  - username: shipping-driver-app-user
+    acls:
+      - group: shippingdriver
+    jwt_secrets:
+      - key: shipping-driver-app
+        algorithm: HS256
+        secret: YmljYXAtand0LXNoaXBwaW5nLWRyaXZlci1yb2xlLXNlY3JldC1rZXkhISEh
+
+# Global logging (optional)
+plugins:
+  - name: file-log
+    config:
+      path: /tmp/kong/global.log

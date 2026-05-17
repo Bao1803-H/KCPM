@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  mysql-order:
+    image: mysql:8.0
+    container_name: mysql-trading-order
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: trading_order_db
+    ports:
+    - "4308:3306"
+    volumes:
+      - ./bicap_order_db.sql:/docker-entrypoint-initdb.d/01_bicap_order_db.sql
+    networks:
+    - bicap-net
+
+networks:
+  bicap-net:
+    driver: bridge

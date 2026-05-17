@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>BiCap Admin - Quản lý Đơn hàng</title>
+  <link rel="icon" type="image/png" href="/assets/img/favicon.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
+  <link href="/assets/css/nucleo-icons.css" rel="stylesheet" />
+  <link href="/assets/css/nucleo-svg.css" rel="stylesheet" />
+  <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link id="pagestyle" href="/assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+  
+  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-radius-lg fixed-start ms-2 bg-white my-2" id="sidenav-main">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-dark opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand px-4 py-3 m-0" href="/admin/dashboard">
+        <img src="/assets/img/logo-ct-dark.png" class="navbar-brand-img" width="26" height="26" alt="main_logo">
+        <span class="ms-1 text-sm text-dark font-weight-bold">BiCap Admin</span>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0 mb-2">
+    <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link text-dark" href="/dashboard">
+            <i class="material-symbols-rounded opacity-5">admin_panel_settings</i>
+            <span class="nav-link-text ms-1">Xét duyệt quyền</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-dark" href="/admin/users">
+            <i class="material-symbols-rounded opacity-5">group</i>
+            <span class="nav-link-text ms-1">Quản lý User</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-dark" href="/admin/farms">
+            <i class="material-symbols-rounded opacity-5">agriculture</i>
+            <span class="nav-link-text ms-1">Giám sát Farm</span>
+          </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/admin/approvals">
+                <i class="material-symbols-rounded opacity-5">category</i>
+                <span class="nav-link-text ms-1">Quản lý Danh mục</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/admin/products">
+                <i class="material-symbols-rounded opacity-5">inventory_2</i>
+                <span class="nav-link-text ms-1">Giám sát Sản phẩm</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active bg-gradient-dark text-white" href="/admin/orders">
+                <i class="material-symbols-rounded opacity-5">shopping_cart</i>
+                <span class="nav-link-text ms-1">Quản lý Đơn hàng</span>
+            </a>
+        </li>
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs text-dark font-weight-bolder opacity-5">Hệ thống</h6>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-dark" href="/logout">
+            <i class="material-symbols-rounded opacity-5">logout</i>
+            <span class="nav-link-text ms-1">Đăng xuất</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-3 shadow-none border-radius-xl" id="navbarBlur" data-scroll="true">
+      <div class="container-fluid py-1 px-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Admin</a></li>
+            <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Đơn hàng</li>
+          </ol>
+          <h6 class="font-weight-bolder mb-0">Quản lý Đơn hàng</h6>
+        </nav>
+      </div>
+    </nav>
+
+    <div class="container-fluid px-2 px-md-4">
+      
+      <!-- Bộ lọc theo trạng thái -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body p-3">
+              <form method="GET" action="/admin/orders" class="row align-items-center">
+                <div class="col-md-4">
+                  <label class="form-label mb-0">Lọc theo trạng thái:</label>
+                </div>
+                <div class="col-md-5">
+                  <select name="status" class="form-select form-select-sm">
+                    <option value="">-- Tất cả --</option>
+                    <option value="CREATED" <%= status === 'CREATED' ? 'selected' : '' %>>Mới tạo</option>
+                    <option value="CONFIRMED" <%= status === 'CONFIRMED' ? 'selected' : '' %>>Đã xác nhận</option>
+                    <option value="COMPLETED" <%= status === 'COMPLETED' ? 'selected' : '' %>>Hoàn thành</option>
+                    <option value="REJECTED" <%= status === 'REJECTED' ? 'selected' : '' %>>Đã từ chối</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <button type="submit" class="btn btn-sm bg-gradient-primary mb-0 w-100">Lọc</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card my-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+              <div class="bg-gradient-dark shadow-dark border-radius-lg pt-4 pb-3 px-3">
+                <h6 class="text-white text-capitalize ps-3 mb-0">Danh sách đơn hàng</h6>
+              </div>
+            </div>
+            <div class="card-body px-0 pb-2">
+              <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0">
+                  <thead>
+                    <tr>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ID Đơn hàng</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Tổng tiền</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Trạng thái</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Ngày tạo</th>
+                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Chi tiết</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (orders && orders.length > 0) { %>
+                        <% orders.forEach(function(order) { %>
+                        <tr>
+                          <td>
+                            <div class="d-flex px-3 py-1">
+                              <div class="d-flex flex-column justify-content-center">
+                                <h6 class="mb-0 text-sm">#<%= order.orderId %></h6>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <p class="text-sm font-weight-bold mb-0">
+                              <%= order.totalAmount ? Number(order.totalAmount).toLocaleString('vi-VN') : '0' %> đ
+                            </p>
+                          </td>
+                          <td class="align-middle text-center text-sm">
+                            <% if (order.status === 'CREATED') { %>
+                                <span class="badge badge-sm bg-gradient-info">Mới tạo</span>
+                            <% } else if (order.status === 'CONFIRMED') { %>
+                                <span class="badge badge-sm bg-gradient-warning">Đã xác nhận</span>
+                            <% } else if (order.status === 'COMPLETED') { %>
+                                <span class="badge badge-sm bg-gradient-success">Hoàn thành</span>
+                            <% } else if (order.status === 'REJECTED') { %>
+                                <span class="badge badge-sm bg-gradient-danger">Từ chối</span>
+                            <% } else { %>
+                                <span class="badge badge-sm bg-gradient-secondary"><%= order.status %></span>
+                            <% } %>
+                          </td>
+                          <td class="align-middle text-center">
+                            <span class="text-secondary text-xs font-weight-bold">
+                              <%= order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : 'N/A' %>
+                            </span>
+                          </td>
+                          <td class="align-middle text-center">
+                            <button class="btn btn-link text-info px-3 mb-0" onclick="viewOrderDetail('<%= order.orderId %>')">
+                                <i class="material-symbols-rounded text-sm me-2">visibility</i>Xem
+                            </button>
+                          </td>
+                        </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr><td colspan="5" class="text-center py-4 text-secondary">Không có đơn hàng nào.</td></tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Chi tiết đơn hàng -->
+  <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Chi tiết đơn hàng #<span id="modalOrderId"></span></h5>
+          <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" id="orderDetailContent">
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/core/bootstrap.min.js"></script>
+  <script src="/assets/js/material-dashboard.min.js"></script>
+  <script>
+    let orderDetailModal;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        orderDetailModal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+    });
+
+    // Xem chi tiết đơn hàng
+    async function viewOrderDetail(orderId) {
+        document.getElementById('modalOrderId').innerText = orderId;
+        document.getElementById('orderDetailContent').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+        orderDetailModal.show();
+
+        try {
+            const res = await fetch(`/api/v1/admin/orders/${orderId}`);
+            if (res.ok) {
+                const order = await res.json();
+                document.getElementById('orderDetailContent').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>ID Đơn hàng:</strong> #${order.orderId}</p>
+                            <p><strong>Trạng thái:</strong> ${getStatusBadge(order.status)}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Tổng tiền:</strong> ${Number(order.totalAmount || 0).toLocaleString('vi-VN')} đ</p>
+                            <p><strong>Ngày tạo:</strong> ${order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : 'N/A'}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                document.getElementById('orderDetailContent').innerHTML = `
+                    <div class="alert alert-danger">Không thể tải thông tin đơn hàng.</div>
+                `;
+            }
+        } catch (e) {
+            console.error(e);
+            document.getElementById('orderDetailContent').innerHTML = `
+                <div class="alert alert-danger">Lỗi kết nối!</div>
+            `;
+        }
+    }
+
+    function getStatusBadge(status) {
+        const badges = {
+            'CREATED': '<span class="badge bg-info">Mới tạo</span>',
+            'CONFIRMED': '<span class="badge bg-warning">Đã xác nhận</span>',
+            'COMPLETED': '<span class="badge bg-success">Hoàn thành</span>',
+            'REJECTED': '<span class="badge bg-danger">Từ chối</span>'
+        };
+        return badges[status] || `<span class="badge bg-secondary">${status}</span>`;
+    }
+  </script>
+</body>
+</html>

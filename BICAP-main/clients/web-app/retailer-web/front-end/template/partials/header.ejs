@@ -1,0 +1,24 @@
+<!-- Font Awesome -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+/>
+
+<header class="header">
+  <div class="header-left">
+    <h2><%= pageTitle %></h2>
+  </div>
+
+  <% if (pageTitle === "Marketplace") { %>
+    <div class="header-right">
+      <div class="search header-search">
+        <i class="fas fa-search"></i>
+        <input
+          type="text"
+          class="live-search"
+          placeholder="Tìm sản phẩm..."
+        />
+      </div>
+    </div>
+  <% } %>
+</header>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title><%= pageTitle || "Chi tiết đơn hàng" %></title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+
+<div class="app">
+  <%- include("partials/sidebar", { user }) %>
+
+  <div class="main">
+    <%- include("partials/header", { pageTitle }) %>
+
+    <main class="content">
+      <div class="content-inner order-detail-wrapper">
+
+        <!-- 🔙 BACK BUTTON -->
+        <div class="order-back">
+          <a href="/my-orders" class="btn-back">
+            ← Quay lại đơn hàng của tôi
+          </a>
+        </div>
+
+        <% if (!order) { %>
+          <div class="empty-text">Không tìm thấy đơn hàng</div>
+        <% } else { %>
+
+          <!-- ===== ORDER SUMMARY ===== -->
+          <div class="order-summary">
+            <h2>Đơn hàng #<%= order.orderId %></h2>
+
+            <div class="order-meta">
+              <div>
+                <span class="label">Trạng thái</span>
+                <span class="status-badge status-<%= order.status.toLowerCase() %>">
+                  <%= order.status %>
+                </span>
+              </div>
+
+              <div>
+                <span class="label">Ngày đặt</span>
+                <span>
+                  <%= new Date(order.createdAt).toLocaleString("vi-VN") %>
+                </span>
+              </div>
+
+              <div>
+                <span class="label">Tổng tiền</span>
+                <span class="price">
+                  <%= order.totalAmount.toLocaleString("vi-VN") %> đ
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== ITEMS ===== -->
+          <h3 class="section-title">Sản phẩm trong đơn</h3>
+
+          <table class="order-items-table">
+            <thead>
+              <tr>
+                <th>Sản phẩm</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% order.items.forEach(i => { %>
+                <tr>
+                  <td class="product-name"><%= i.productName %></td>
+                  <td><%= i.quantity %></td>
+                  <td><%= i.unitPrice.toLocaleString("vi-VN") %> đ</td>
+                  <td class="price">
+                    <%= i.totalPrice.toLocaleString("vi-VN") %> đ
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+
+          <!-- ===== FEEDBACK (COMPLETED ORDERS) ===== -->
+          <% if (order.status === "COMPLETED") { %>
+            <h3 class="section-title">Đánh giá đơn hàng</h3>
+            <form method="post" action="/orders/<%= order.orderId %>/feedback">
+              <textarea name="content" required placeholder="Nhập đánh giá của bạn..."></textarea>
+              <button class="btn-primary" type="submit">
+                Gửi đánh giá
+              </button>
+            </form>
+          <% } %>
+
+        <% } %>
+
+      </div>
+    </main>
+
+    <%- include("partials/footer") %>
+  </div>
+</div>
+
+<script src="/js/layout.js"></script>
+</body>
+</html>

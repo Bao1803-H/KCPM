@@ -1,0 +1,61 @@
+.App {
+  text-align: left;
+}
+
+.sidebar {
+  width: 250px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  background-color: white;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+
+.main-content {
+  margin-left: 250px;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.badge-status {
+  padding: 0.5em 1em;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+.badge-pending {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.badge-assigned {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+.badge-in-transit {
+  background-color: #0dcaf0;
+  color: #000;
+}
+
+.badge-delivered {
+  background-color: #198754;
+  color: #fff;
+}
+
+.badge-cancelled {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.badge-available {
+  background-color: #198754;
+  color: #fff;
+}
+
+.badge-busy {
+  background-color: #ffc107;
+  color: #000;
+}
