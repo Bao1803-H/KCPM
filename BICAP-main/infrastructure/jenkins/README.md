@@ -19,7 +19,7 @@ Use it when the pipeline fails with errors such as:
 2. Run:
 
 ```bash
-docker compose -f infrastructure/jenkins/docker-compose.jenkins.yml up -d --build
+docker compose -f infrastructure/jenkins/docker-compose.jenkins.yml up -d --build --force-recreate
 ```
 
 3. Open [http://localhost:8080](http://localhost:8080)
