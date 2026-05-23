@@ -240,7 +240,7 @@ Jenkins đã hỗ trợ **Build with Parameters** với parameter:
 | `JIRA_EMAIL` | Email account gọi Jira API |
 | `JIRA_API_TOKEN` | API token |
 | `JIRA_PROJECT_KEY` | Key dự án Jira |
-| `JIRA_ISSUE_TYPE` | Mặc định `Bug` |
+| `JIRA_ISSUE_TYPE` | Mặc định `Task` |
 | `JIRA_ROUTING_FILE` | File routing member |
 | `JIRA_ASSIGNMENT_STATE_FILE` | File runtime lưu vòng assign |
 | `JIRA_STATUS_BUG_LOGGED` | Tên trạng thái Jira khi bug vừa được log |
