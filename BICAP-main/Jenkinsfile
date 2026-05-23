@@ -1,0 +1,277 @@
+def runCmd(String command) {
+    if (isUnix()) {
+        sh(script: command)
+    } else {
+        powershell(script: command)
+    }
+}
+
+String extractJiraKey(String branchName) {
+    if (!branchName) {
+        return null
+    }
+
+    def matcher = (branchName =~ /([A-Z][A-Z0-9]+-\d+)/)
+    if (matcher.find()) {
+        return matcher.group(1)
+    }
+
+    return null
+}
+
+def runNpm(String args) {
+    if (isUnix()) {
+        sh(script: "npm ${args}")
+    } else {
+        powershell(script: "npm.cmd ${args}")
+    }
+}
+
+def runNpx(String args) {
+    if (isUnix()) {
+        sh(script: "npx ${args}")
+    } else {
+        powershell(script: "npx.cmd ${args}")
+    }
+}
+
+def ensureDir(String path) {
+    if (isUnix()) {
+        sh(script: "mkdir -p ${path}")
+    } else {
+        powershell(script: "New-Item -ItemType Directory -Force '${path}' | Out-Null")
+    }
+}
+
+def reportJiraBug(String module, String stageName, String reportFile) {
+    def escapedStage = stageName.replace('"', '\\"')
+    def escapedFile = reportFile.replace('"', '\\"')
+    runCmd("node automation/jira/create-jira-bug.mjs --module ${module} --stage \"${escapedStage}\" --descriptionFile \"${escapedFile}\"")
+}
+
+def transitionJiraIssue(String issueKey, String statusName) {
+    if (!issueKey) {
+        echo "Skipping Jira transition because issue key is empty."
+        return
+    }
+
+    def escapedStatus = statusName.replace('"', '\\"')
+    runCmd("node automation/jira/update-jira-status.mjs --issueKey ${issueKey} --status \"${escapedStatus}\"")
+}
+
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        choice(
+            name: 'QA_SCOPE',
+            choices: ['all', 'frontend', 'backend', 'integration', 'infra'],
+            description: 'Select the QA scope that the tester wants Jenkins to run.'
+        )
+    }
+
+    environment {
+        QA_REPORT_DIR = 'qa/reports'
+        QA_TARGETS = 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083 http://127.0.0.1:3005/login http://127.0.0.1:3002/health http://127.0.0.1:3001/login http://127.0.0.1:3000/login http://127.0.0.1:3003/login'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Prepare Reports') {
+            steps {
+                script {
+                    ensureDir(env.QA_REPORT_DIR)
+                }
+            }
+        }
+
+        stage('Scope Summary') {
+            steps {
+                script {
+                    echo "Selected QA scope: ${params.QA_SCOPE}"
+                    echo "Detected Jira key from branch: ${extractJiraKey(env.BRANCH_NAME ?: env.GIT_BRANCH)}"
+                }
+            }
+        }
+
+        stage('Mark Jira In Progress') {
+            when {
+                expression {
+                    return extractJiraKey(env.BRANCH_NAME ?: env.GIT_BRANCH) != null
+                }
+            }
+            steps {
+                script {
+                    def jiraKey = extractJiraKey(env.BRANCH_NAME ?: env.GIT_BRANCH)
+                    transitionJiraIssue(jiraKey, env.JIRA_STATUS_IN_PROGRESS ?: 'In Progress')
+                }
+            }
+        }
+
+        stage('Deploy Test Stack') {
+            steps {
+                script {
+                    try {
+                        runCmd('docker compose up -d --build')
+                    } catch (err) {
+                        writeFile(
+                            file: "${env.QA_REPORT_DIR}/deploy-failure.txt",
+                            text: """Stage: Deploy Test Stack
+Build: ${env.BUILD_URL ?: 'n/a'}
+Branch: ${env.BRANCH_NAME ?: 'n/a'}
+Error: ${err}
+"""
+                        )
+                        reportJiraBug('infra', 'Deploy Test Stack', "${env.QA_REPORT_DIR}/deploy-failure.txt")
+                        throw err
+                    }
+                }
+            }
+        }
+
+        stage('Wait For Targets') {
+            steps {
+                script {
+                    try {
+                        runCmd("node qa/scripts/wait-for-targets.mjs ${env.QA_TARGETS}")
+                    } catch (err) {
+                        writeFile(
+                            file: "${env.QA_REPORT_DIR}/wait-targets-failure.txt",
+                            text: """Stage: Wait For Targets
+Build: ${env.BUILD_URL ?: 'n/a'}
+Branch: ${env.BRANCH_NAME ?: 'n/a'}
+Targets: ${env.QA_TARGETS}
+Error: ${err}
+"""
+                        )
+                        reportJiraBug(
+                            params.QA_SCOPE == 'infra' ? 'infra' : 'integration',
+                            'Wait For Targets',
+                            "${env.QA_REPORT_DIR}/wait-targets-failure.txt"
+                        )
+                        throw err
+                    }
+                }
+            }
+        }
+
+        stage('Infrastructure QA') {
+            when {
+                expression {
+                    return params.QA_SCOPE == 'infra'
+                }
+            }
+            steps {
+                script {
+                    try {
+                        runCmd('docker compose ps')
+                    } catch (err) {
+                        writeFile(
+                            file: "${env.QA_REPORT_DIR}/infra-failure.txt",
+                            text: """Stage: Infrastructure QA
+Build: ${env.BUILD_URL ?: 'n/a'}
+Branch: ${env.BRANCH_NAME ?: 'n/a'}
+Selected scope: ${params.QA_SCOPE}
+Error: ${err}
+"""
+                        )
+                        reportJiraBug('infra', 'Infrastructure QA', "${env.QA_REPORT_DIR}/infra-failure.txt")
+                        throw err
+                    }
+                }
+            }
+        }
+
+        stage('Frontend QA') {
+            when {
+                expression {
+                    return params.QA_SCOPE in ['all', 'frontend', 'integration']
+                }
+            }
+            steps {
+                script {
+                    try {
+                        runNpm('install --prefix clients/web-app/shipping-manager-web')
+                        runNpm('run build --prefix clients/web-app/shipping-manager-web')
+                        runNpm('install --prefix clients/web-app/farm-management-web')
+                        runNpm('run test:smoke --prefix clients/web-app/farm-management-web')
+                        runCmd('node qa/scripts/frontend-smoke.mjs')
+                    } catch (err) {
+                        writeFile(
+                            file: "${env.QA_REPORT_DIR}/frontend-failure.txt",
+                            text: """Stage: Frontend QA
+Build: ${env.BUILD_URL ?: 'n/a'}
+Branch: ${env.BRANCH_NAME ?: 'n/a'}
+Error: ${err}
+"""
+                        )
+                        reportJiraBug('frontend', 'Frontend QA', "${env.QA_REPORT_DIR}/frontend-failure.txt")
+                        throw err
+                    }
+                }
+            }
+        }
+
+        stage('Backend QA') {
+            when {
+                expression {
+                    return params.QA_SCOPE in ['all', 'backend', 'integration']
+                }
+            }
+            steps {
+                script {
+                    try {
+                        runNpx('--yes newman run qa/postman/bicap-api-smoke.postman_collection.json -e qa/postman/local.postman_environment.json --reporters cli,junit --reporter-junit-export qa/reports/newman-results.xml')
+                    } catch (err) {
+                        writeFile(
+                            file: "${env.QA_REPORT_DIR}/backend-failure.txt",
+                            text: """Stage: Backend QA
+Build: ${env.BUILD_URL ?: 'n/a'}
+Branch: ${env.BRANCH_NAME ?: 'n/a'}
+Error: ${err}
+"""
+                        )
+                        reportJiraBug('backend', 'Backend QA', "${env.QA_REPORT_DIR}/backend-failure.txt")
+                        throw err
+                    }
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: 'qa/reports/*.xml'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            script {
+                def jiraKey = extractJiraKey(env.BRANCH_NAME ?: env.GIT_BRANCH)
+                if (jiraKey) {
+                    transitionJiraIssue(jiraKey, env.JIRA_STATUS_READY_FOR_RETEST ?: 'Ready for Retest')
+                }
+            }
+        }
+        always {
+            script {
+                try {
+                    runCmd('docker compose down -v')
+                } catch (err) {
+                    echo "docker compose down failed: ${err}"
+                }
+            }
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'qa/reports/**/*'
+        }
+    }
+}

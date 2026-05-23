@@ -8,6 +8,10 @@
     "bootstrap": "npm install",
     "start:admin": "npm start --workspace=admin-web",
     "start:farm": "npm start --workspace=farm-management-web",
-    "start:guest": "npm start --workspace=guest-web"
+    "start:guest": "npm start --workspace=guest-web",
+    "qa:wait": "node qa/scripts/wait-for-targets.mjs",
+    "qa:frontend-smoke": "node qa/scripts/frontend-smoke.mjs",
+    "jira:create-bug": "node automation/jira/create-jira-bug.mjs",
+    "jira:update-status": "node automation/jira/update-jira-status.mjs"
   }
 }

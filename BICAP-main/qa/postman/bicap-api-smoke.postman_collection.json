@@ -1,0 +1,225 @@
+{
+  "info": {
+    "name": "BICAP API Smoke",
+    "_postman_id": "f0c7e6da-eaa5-4f40-b75e-650104758879",
+    "description": "Smoke tests for BICAP backend services after Docker deployment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth - Login Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{auth_base_url}}/api/auth/login",
+          "host": [
+            "{{auth_base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login should succeed', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const rawToken = pm.response.text().trim();",
+              "const token = rawToken.replace(/^\"|\"$/g, '');",
+              "",
+              "pm.test('Token should not be empty', function () {",
+              "    pm.expect(token).to.not.eql('');",
+              "});",
+              "",
+              "pm.environment.set('admin_token', token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Service - Dashboard Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{admin_base_url}}/api/v1/admin/dashboard/stats",
+          "host": [
+            "{{admin_base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "dashboard",
+            "stats"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Dashboard stats should return 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "",
+              "pm.test('Dashboard stats should include totals', function () {",
+              "    pm.expect(jsonData).to.have.property('totalUsers');",
+              "    pm.expect(jsonData).to.have.property('totalFarms');",
+              "    pm.expect(jsonData).to.have.property('totalOrders');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Service - Get All Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{admin_base_url}}/api/v1/admin/users/all",
+          "host": [
+            "{{admin_base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "users",
+            "all"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Get all users should return 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Get all users should return an array', function () {",
+              "    pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shipping Service - Get Vehicles",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{shipping_base_url}}/api/vehicles",
+          "host": [
+            "{{shipping_base_url}}"
+          ],
+          "path": [
+            "api",
+            "vehicles"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Get vehicles should return 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Get vehicles should return an array', function () {",
+              "    pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shipping Service - Get Drivers",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{shipping_base_url}}/api/drivers",
+          "host": [
+            "{{shipping_base_url}}"
+          ],
+          "path": [
+            "api",
+            "drivers"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Get drivers should return 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Get drivers should return an array', function () {",
+              "    pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
