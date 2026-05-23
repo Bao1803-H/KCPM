@@ -61,6 +61,26 @@ function truncate(text, maxLength) {
     return `${text.slice(0, maxLength - 3)}...`;
 }
 
+function slugifyLabelPart(input) {
+    return String(input || 'unknown-stage')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        || 'unknown-stage';
+}
+
+function escapeJqlValue(input) {
+    return String(input || '')
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"');
+}
+
+function extractJiraKey(input) {
+    const match = String(input || '').match(/([A-Z][A-Z0-9]+-\d+)/);
+    return match ? match[1] : null;
+}
+
 function loadAssignmentState(stateFile) {
     if (!stateFile || !fs.existsSync(stateFile)) {
         return {};
@@ -147,6 +167,131 @@ function resolveAssignee({ routingConfig, moduleConfig, moduleName, stageName, b
     return null;
 }
 
+async function addIssueComment({ jiraConfig, authHeader, issueKey, lines }) {
+    const response = await fetch(`${jiraConfig.baseUrl}/rest/api/3/issue/${issueKey}/comment`, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            Authorization: authHeader,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            body: buildAdfDocument(lines)
+        })
+    });
+
+    if (!response.ok) {
+        const failureBody = await response.text();
+        console.warn(`Jira comment creation failed for ${issueKey}: ${response.status} ${failureBody}`);
+        return false;
+    }
+
+    return true;
+}
+
+async function moveIssueToStatus({ jiraConfig, authHeader, issueKey, statusName }) {
+    try {
+        const transitionListResponse = await fetch(`${jiraConfig.baseUrl}/rest/api/3/issue/${issueKey}/transitions`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                Authorization: authHeader
+            }
+        });
+
+        if (!transitionListResponse.ok) {
+            const failureBody = await transitionListResponse.text();
+            console.warn(`Jira transition lookup failed for ${issueKey}: ${transitionListResponse.status} ${failureBody}`);
+            return false;
+        }
+
+        const transitionsPayload = await transitionListResponse.json();
+        const transitions = Array.isArray(transitionsPayload.transitions) ? transitionsPayload.transitions : [];
+        const expected = String(statusName || '').toLowerCase();
+        const targetTransition = transitions.find((transition) => {
+            const transitionName = (transition?.name || '').toLowerCase();
+            const targetStatus = (transition?.to?.name || '').toLowerCase();
+            return transitionName === expected || targetStatus === expected;
+        });
+
+        if (!targetTransition) {
+            console.warn(`Transition "${statusName}" is not available for ${issueKey}.`);
+            return false;
+        }
+
+        const transitionResponse = await fetch(`${jiraConfig.baseUrl}/rest/api/3/issue/${issueKey}/transitions`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                Authorization: authHeader,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                transition: {
+                    id: targetTransition.id
+                }
+            })
+        });
+
+        if (!transitionResponse.ok) {
+            const failureBody = await transitionResponse.text();
+            console.warn(`Cannot move ${issueKey} to ${statusName}: ${transitionResponse.status} ${failureBody}`);
+            return false;
+        }
+
+        console.log(`Transitioned ${issueKey} -> ${statusName}`);
+        return true;
+    } catch (error) {
+        console.warn(`Jira transition skipped for ${issueKey}: ${error.message}`);
+        return false;
+    }
+}
+
+async function findReusableIssue({ jiraConfig, authHeader, branchName, labels }) {
+    const branchIssueKey = extractJiraKey(branchName);
+    if (branchIssueKey) {
+        return {
+            key: branchIssueKey,
+            url: `${jiraConfig.baseUrl}/browse/${branchIssueKey}`,
+            reason: 'branch_key'
+        };
+    }
+
+    const labelClauses = labels.map((label) => `labels = "${escapeJqlValue(label)}"`).join(' AND ');
+    const jql = `project = "${escapeJqlValue(jiraConfig.projectKey)}" AND ${labelClauses} AND statusCategory != Done ORDER BY created DESC`;
+    const response = await fetch(`${jiraConfig.baseUrl}/rest/api/3/search`, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            Authorization: authHeader,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            jql,
+            maxResults: 1,
+            fields: ['summary', 'status']
+        })
+    });
+
+    if (!response.ok) {
+        const failureBody = await response.text();
+        console.warn(`Jira duplicate search failed: ${response.status} ${failureBody}`);
+        return null;
+    }
+
+    const payload = await response.json();
+    const issues = Array.isArray(payload.issues) ? payload.issues : [];
+    if (issues.length === 0) {
+        return null;
+    }
+
+    return {
+        key: issues[0].key,
+        url: `${jiraConfig.baseUrl}/browse/${issues[0].key}`,
+        reason: 'open_duplicate'
+    };
+}
+
 async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, descriptionText }) {
     const moduleConfig = routingConfig.moduleRouting[moduleName]
         || routingConfig.moduleRouting[routingConfig.defaultModule];
@@ -167,9 +312,11 @@ async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, d
     });
     const assignee = selectedAssignee?.member || null;
     const branchPrefix = moduleConfig?.branchPrefix || 'bugfix/general';
+    const stageLabel = `stage-${slugifyLabelPart(stageName)}`;
     const labels = [
         'automated-bug',
         `module-${moduleName}`,
+        stageLabel,
         ...(moduleConfig?.labels || [])
     ];
 
@@ -213,6 +360,49 @@ async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, d
     };
 
     const authHeader = `Basic ${Buffer.from(`${jiraConfig.email}:${jiraConfig.apiToken}`).toString('base64')}`;
+    const bugLoggedStatus = process.env.JIRA_STATUS_BUG_LOGGED || 'Bug Logged';
+    const reusableIssue = await findReusableIssue({
+        jiraConfig,
+        authHeader,
+        branchName,
+        labels: [...new Set(labels)]
+    });
+
+    if (reusableIssue) {
+        const commentAdded = await addIssueComment({
+            jiraConfig,
+            authHeader,
+            issueKey: reusableIssue.key,
+            lines: [
+                'Automated QA detected this failure again and reused the existing Jira issue.',
+                `Reuse reason: ${reusableIssue.reason}`,
+                `Module: ${moduleName}`,
+                `Stage: ${stageName}`,
+                `Build: ${jobName} #${buildNumber}`,
+                `Build URL: ${buildUrl}`,
+                `Source branch: ${branchName}`,
+                '',
+                'Latest failure detail:',
+                truncate(descriptionText || 'No failure detail was provided.', 3000)
+            ]
+        });
+
+        if (commentAdded) {
+            console.log(`Reused Jira issue: ${reusableIssue.key} -> ${reusableIssue.url}`);
+        }
+
+        if (reusableIssue.reason === 'open_duplicate') {
+            await moveIssueToStatus({
+                jiraConfig,
+                authHeader,
+                issueKey: reusableIssue.key,
+                statusName: bugLoggedStatus
+            });
+        }
+
+        return;
+    }
+
     const issueResponse = await fetch(`${jiraConfig.baseUrl}/rest/api/3/issue`, {
         method: 'POST',
         headers: {
@@ -232,9 +422,8 @@ async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, d
     const issueData = await issueResponse.json();
     const issueKey = issueData.key;
     const issueUrl = `${jiraConfig.baseUrl}/browse/${issueKey}`;
-    const bugLoggedStatus = process.env.JIRA_STATUS_BUG_LOGGED || 'Bug Logged';
 
-    console.log(`Created Jira bug: ${issueKey} -> ${issueUrl}`);
+    console.log(`Created Jira issue: ${issueKey} -> ${issueUrl}`);
 
     if (!assignee || isPlaceholder(assignee.accountId)) {
         console.log('Skipping Jira assignee update because accountId is missing or placeholder.');
@@ -259,65 +448,12 @@ async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, d
         }
     }
 
-    try {
-        const transitionListResponse = await fetch(`${jiraConfig.baseUrl}/rest/api/3/issue/${issueKey}/transitions`, {
-            method: 'GET',
-            headers: {
-                Accept: 'application/json',
-                Authorization: authHeader
-            }
-        });
-
-        if (!transitionListResponse.ok) {
-            const failureBody = await transitionListResponse.text();
-            console.warn(`Jira transition lookup failed for ${issueKey}: ${transitionListResponse.status} ${failureBody}`);
-            return;
-        }
-
-        const transitionsPayload = await transitionListResponse.json();
-        const transitions = Array.isArray(transitionsPayload.transitions) ? transitionsPayload.transitions : [];
-        const matchesTarget = (transition) => {
-            const transitionName = transition?.name || '';
-            const targetStatus = transition?.to?.name || '';
-            return transitionName === bugLoggedStatus || targetStatus === bugLoggedStatus;
-        };
-        const matchesTargetCaseInsensitive = (transition) => {
-            const expected = bugLoggedStatus.toLowerCase();
-            return (transition?.name || '').toLowerCase() === expected
-                || (transition?.to?.name || '').toLowerCase() === expected;
-        };
-        const targetTransition = transitions.find(matchesTarget)
-            || transitions.find(matchesTargetCaseInsensitive);
-
-        if (!targetTransition) {
-            console.warn(`Transition "${bugLoggedStatus}" is not available for ${issueKey}.`);
-            return;
-        }
-
-        const transitionResponse = await fetch(`${jiraConfig.baseUrl}/rest/api/3/issue/${issueKey}/transitions`, {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                Authorization: authHeader,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                transition: {
-                    id: targetTransition.id
-                }
-            })
-        });
-
-        if (!transitionResponse.ok) {
-            const failureBody = await transitionResponse.text();
-            console.warn(`Cannot move ${issueKey} to ${bugLoggedStatus}: ${transitionResponse.status} ${failureBody}`);
-            return;
-        }
-
-        console.log(`Transitioned ${issueKey} -> ${bugLoggedStatus}`);
-    } catch (error) {
-        console.warn(`Jira bug transition skipped: ${error.message}`);
-    }
+    await moveIssueToStatus({
+        jiraConfig,
+        authHeader,
+        issueKey,
+        statusName: bugLoggedStatus
+    });
 }
 
 async function main() {
@@ -331,7 +467,7 @@ async function main() {
         email: process.env.JIRA_EMAIL,
         apiToken: process.env.JIRA_API_TOKEN,
         projectKey: process.env.JIRA_PROJECT_KEY,
-        issueType: process.env.JIRA_ISSUE_TYPE || 'Bug'
+        issueType: process.env.JIRA_ISSUE_TYPE || 'Task'
     };
 
     if (!jiraConfig.baseUrl || !jiraConfig.email || !jiraConfig.apiToken || !jiraConfig.projectKey) {

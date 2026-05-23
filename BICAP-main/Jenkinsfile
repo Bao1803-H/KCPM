@@ -75,6 +75,67 @@ def transitionJiraIssue(String issueKey, String statusName) {
     }
 }
 
+List composeServicesForScope(String scope) {
+    switch (scope) {
+        case 'frontend':
+            return ['guest-web', 'retailer-web', 'admin-web', 'farm-management-web', 'shipping-manager-web']
+        case 'backend':
+            return ['auth-service', 'admin-service', 'shipping-manager-service']
+        case 'integration':
+            return [
+                'guest-web',
+                'retailer-web',
+                'admin-web',
+                'farm-management-web',
+                'shipping-manager-web',
+                'auth-service',
+                'admin-service',
+                'shipping-manager-service'
+            ]
+        case 'infra':
+        case 'all':
+        default:
+            return []
+    }
+}
+
+String composeUpCommand(String scope) {
+    def services = composeServicesForScope(scope)
+    return services
+        ? "docker compose up -d --build ${services.join(' ')}"
+        : 'docker compose up -d --build'
+}
+
+String qaTargetsForScope(String scope) {
+    switch (scope) {
+        case 'frontend':
+            return 'http://127.0.0.1:3005/login http://127.0.0.1:3002/health http://127.0.0.1:3001/login http://127.0.0.1:3000/login http://127.0.0.1:3003/login'
+        case 'backend':
+            return 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083'
+        case 'infra':
+            return 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083'
+        case 'integration':
+        case 'all':
+        default:
+            return 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083 http://127.0.0.1:3005/login http://127.0.0.1:3002/health http://127.0.0.1:3001/login http://127.0.0.1:3000/login http://127.0.0.1:3003/login'
+    }
+}
+
+String jiraModuleForScope(String scope) {
+    switch (scope) {
+        case 'frontend':
+            return 'frontend'
+        case 'backend':
+            return 'backend'
+        case 'integration':
+        case 'all':
+            return 'integration'
+        case 'infra':
+        default:
+            return 'infra'
+    }
+}
+
 pipeline {
     agent any
 
@@ -93,7 +154,10 @@ pipeline {
 
     environment {
         QA_REPORT_DIR = 'qa/reports'
-        QA_TARGETS = 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083 http://127.0.0.1:3005/login http://127.0.0.1:3002/health http://127.0.0.1:3001/login http://127.0.0.1:3000/login http://127.0.0.1:3003/login'
+        QA_TARGETS = ''
+        QA_DEPLOY_COMMAND = ''
+        QA_SCOPE_MODULE = ''
+        QA_SERVICE_LIST = ''
     }
 
     stages {
@@ -116,7 +180,17 @@ pipeline {
         stage('Scope Summary') {
             steps {
                 script {
+                    def scopedServices = composeServicesForScope(params.QA_SCOPE)
+                    env.QA_TARGETS = qaTargetsForScope(params.QA_SCOPE)
+                    env.QA_DEPLOY_COMMAND = composeUpCommand(params.QA_SCOPE)
+                    env.QA_SCOPE_MODULE = jiraModuleForScope(params.QA_SCOPE)
+                    env.QA_SERVICE_LIST = scopedServices ? scopedServices.join(', ') : 'full-stack'
+
                     echo "Selected QA scope: ${params.QA_SCOPE}"
+                    echo "Compose deployment: ${env.QA_DEPLOY_COMMAND}"
+                    echo "Compose service set: ${env.QA_SERVICE_LIST}"
+                    echo "Wait targets: ${env.QA_TARGETS}"
+                    echo "Jira module for scoped infra failures: ${env.QA_SCOPE_MODULE}"
                     echo "Detected Jira key from branch: ${extractJiraKey(env.BRANCH_NAME ?: env.GIT_BRANCH)}"
                 }
             }
@@ -141,7 +215,7 @@ pipeline {
                 script {
                     try {
                         inProjectDir {
-                            runCmd('docker compose up -d --build')
+                            runCmd(env.QA_DEPLOY_COMMAND)
                         }
                     } catch (err) {
                         writeProjectFile(
@@ -152,7 +226,7 @@ Branch: ${env.BRANCH_NAME ?: 'n/a'}
 Error: ${err}
 """
                         )
-                        reportJiraBug('infra', 'Deploy Test Stack', "${env.QA_REPORT_DIR}/deploy-failure.txt")
+                        reportJiraBug(env.QA_SCOPE_MODULE ?: 'infra', 'Deploy Test Stack', "${env.QA_REPORT_DIR}/deploy-failure.txt")
                         throw err
                     }
                 }
@@ -176,11 +250,7 @@ Targets: ${env.QA_TARGETS}
 Error: ${err}
 """
                         )
-                        reportJiraBug(
-                            params.QA_SCOPE == 'infra' ? 'infra' : 'integration',
-                            'Wait For Targets',
-                            "${env.QA_REPORT_DIR}/wait-targets-failure.txt"
-                        )
+                        reportJiraBug(env.QA_SCOPE_MODULE ?: 'integration', 'Wait For Targets', "${env.QA_REPORT_DIR}/wait-targets-failure.txt")
                         throw err
                     }
                 }

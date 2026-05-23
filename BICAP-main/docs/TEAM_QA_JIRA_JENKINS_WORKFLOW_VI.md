@@ -128,15 +128,16 @@ Member 1 thực hiện:
    - `all`
 2. Chạy Jenkins job hoặc QA pipeline.
 3. Jenkins:
-   - deploy Docker test stack
-   - với `frontend`: test FE
-   - với `backend`: test BE bằng Postman/Newman
-   - với `integration`: test cả FE và BE
-   - với `infra`: chỉ kiểm tra deploy, service readiness và môi trường
-   - với `all`: chạy toàn bộ
+   - deploy Docker test stack theo đúng scope đã chọn
+   - với `frontend`: chỉ dựng subset FE cần cho smoke test giao diện
+   - với `backend`: chỉ dựng subset API cần cho Newman/Postman
+   - với `integration`: dựng FE + BE cần cho luồng tích hợp
+   - với `infra`: dựng full stack để kiểm tra deploy, service readiness và môi trường
+   - với `all`: chạy toàn bộ stack
 4. Nếu test fail:
    - Jenkins tự log bug lên Jira
    - bug tự assign cho member phù hợp
+   - nếu cùng một lỗi đang còn mở trên Jira, Jenkins sẽ comment vào issue cũ thay vì tạo task trùng
 
 ### 5.2 Bước 2 - Member được assign fix bug
 
@@ -191,6 +192,13 @@ Pipeline hiện có các stage:
 Jenkins đã hỗ trợ **Build with Parameters** với parameter:
 
 - `QA_SCOPE = all | frontend | backend | integration | infra`
+
+Hành vi deploy theo scope:
+
+- `frontend`: chỉ `guest-web`, `retailer-web`, `admin-web`, `farm-management-web`, `shipping-manager-web` và dependency trực tiếp của chúng
+- `backend`: chỉ `auth-service`, `admin-service`, `shipping-manager-service` và dependency trực tiếp của chúng
+- `integration`: gộp subset của FE và BE
+- `infra` hoặc `all`: dựng full stack
 
 ### 6.2 Jira automation
 
@@ -272,6 +280,7 @@ Với tư cách Member 1 - Tester, bạn cần:
    - deploy fail
 4. Nếu pipeline fail:
    - Jira bug sẽ được tạo tự động
+   - nếu đã có issue mở cùng `module + stage`, Jenkins sẽ reuse issue đó và thêm comment mới
    - bạn chỉ cần kiểm tra bug đã đúng module, đúng mô tả, đúng người nhận
 5. Sau khi dev fix xong và Jenkins deploy lại:
    - retest
