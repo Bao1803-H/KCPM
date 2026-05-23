@@ -6,6 +6,18 @@ def runCmd(String command) {
     }
 }
 
+def inProjectDir(Closure body) {
+    dir('BICAP-main') {
+        body()
+    }
+}
+
+def writeProjectFile(String path, String content) {
+    inProjectDir {
+        writeFile(file: path, text: content)
+    }
+}
+
 String extractJiraKey(String branchName) {
     if (!branchName) {
         return null
@@ -46,7 +58,9 @@ def ensureDir(String path) {
 def reportJiraBug(String module, String stageName, String reportFile) {
     def escapedStage = stageName.replace('"', '\\"')
     def escapedFile = reportFile.replace('"', '\\"')
-    runCmd("node automation/jira/create-jira-bug.mjs --module ${module} --stage \"${escapedStage}\" --descriptionFile \"${escapedFile}\"")
+    inProjectDir {
+        runCmd("node automation/jira/create-jira-bug.mjs --module ${module} --stage \"${escapedStage}\" --descriptionFile \"${escapedFile}\"")
+    }
 }
 
 def transitionJiraIssue(String issueKey, String statusName) {
@@ -56,7 +70,9 @@ def transitionJiraIssue(String issueKey, String statusName) {
     }
 
     def escapedStatus = statusName.replace('"', '\\"')
-    runCmd("node automation/jira/update-jira-status.mjs --issueKey ${issueKey} --status \"${escapedStatus}\"")
+    inProjectDir {
+        runCmd("node automation/jira/update-jira-status.mjs --issueKey ${issueKey} --status \"${escapedStatus}\"")
+    }
 }
 
 pipeline {
@@ -90,7 +106,9 @@ pipeline {
         stage('Prepare Reports') {
             steps {
                 script {
-                    ensureDir(env.QA_REPORT_DIR)
+                    inProjectDir {
+                        ensureDir(env.QA_REPORT_DIR)
+                    }
                 }
             }
         }
@@ -122,11 +140,13 @@ pipeline {
             steps {
                 script {
                     try {
-                        runCmd('docker compose up -d --build')
+                        inProjectDir {
+                            runCmd('docker compose up -d --build')
+                        }
                     } catch (err) {
-                        writeFile(
-                            file: "${env.QA_REPORT_DIR}/deploy-failure.txt",
-                            text: """Stage: Deploy Test Stack
+                        writeProjectFile(
+                            "${env.QA_REPORT_DIR}/deploy-failure.txt",
+                            """Stage: Deploy Test Stack
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
 Error: ${err}
@@ -143,11 +163,13 @@ Error: ${err}
             steps {
                 script {
                     try {
-                        runCmd("node qa/scripts/wait-for-targets.mjs ${env.QA_TARGETS}")
+                        inProjectDir {
+                            runCmd("node qa/scripts/wait-for-targets.mjs ${env.QA_TARGETS}")
+                        }
                     } catch (err) {
-                        writeFile(
-                            file: "${env.QA_REPORT_DIR}/wait-targets-failure.txt",
-                            text: """Stage: Wait For Targets
+                        writeProjectFile(
+                            "${env.QA_REPORT_DIR}/wait-targets-failure.txt",
+                            """Stage: Wait For Targets
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
 Targets: ${env.QA_TARGETS}
@@ -174,11 +196,13 @@ Error: ${err}
             steps {
                 script {
                     try {
-                        runCmd('docker compose ps')
+                        inProjectDir {
+                            runCmd('docker compose ps')
+                        }
                     } catch (err) {
-                        writeFile(
-                            file: "${env.QA_REPORT_DIR}/infra-failure.txt",
-                            text: """Stage: Infrastructure QA
+                        writeProjectFile(
+                            "${env.QA_REPORT_DIR}/infra-failure.txt",
+                            """Stage: Infrastructure QA
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
 Selected scope: ${params.QA_SCOPE}
@@ -201,15 +225,17 @@ Error: ${err}
             steps {
                 script {
                     try {
-                        runNpm('install --prefix clients/web-app/shipping-manager-web')
-                        runNpm('run build --prefix clients/web-app/shipping-manager-web')
-                        runNpm('install --prefix clients/web-app/farm-management-web')
-                        runNpm('run test:smoke --prefix clients/web-app/farm-management-web')
-                        runCmd('node qa/scripts/frontend-smoke.mjs')
+                        inProjectDir {
+                            runNpm('install --prefix clients/web-app/shipping-manager-web')
+                            runNpm('run build --prefix clients/web-app/shipping-manager-web')
+                            runNpm('install --prefix clients/web-app/farm-management-web')
+                            runNpm('run test:smoke --prefix clients/web-app/farm-management-web')
+                            runCmd('node qa/scripts/frontend-smoke.mjs')
+                        }
                     } catch (err) {
-                        writeFile(
-                            file: "${env.QA_REPORT_DIR}/frontend-failure.txt",
-                            text: """Stage: Frontend QA
+                        writeProjectFile(
+                            "${env.QA_REPORT_DIR}/frontend-failure.txt",
+                            """Stage: Frontend QA
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
 Error: ${err}
@@ -231,11 +257,13 @@ Error: ${err}
             steps {
                 script {
                     try {
-                        runNpx('--yes newman run qa/postman/bicap-api-smoke.postman_collection.json -e qa/postman/local.postman_environment.json --reporters cli,junit --reporter-junit-export qa/reports/newman-results.xml')
+                        inProjectDir {
+                            runNpx('--yes newman run qa/postman/bicap-api-smoke.postman_collection.json -e qa/postman/local.postman_environment.json --reporters cli,junit --reporter-junit-export qa/reports/newman-results.xml')
+                        }
                     } catch (err) {
-                        writeFile(
-                            file: "${env.QA_REPORT_DIR}/backend-failure.txt",
-                            text: """Stage: Backend QA
+                        writeProjectFile(
+                            "${env.QA_REPORT_DIR}/backend-failure.txt",
+                            """Stage: Backend QA
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
 Error: ${err}
@@ -248,7 +276,7 @@ Error: ${err}
             }
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: 'qa/reports/*.xml'
+                    junit allowEmptyResults: true, testResults: 'BICAP-main/qa/reports/*.xml'
                 }
             }
         }
@@ -266,12 +294,14 @@ Error: ${err}
         always {
             script {
                 try {
-                    runCmd('docker compose down -v')
+                    inProjectDir {
+                        runCmd('docker compose down -v')
+                    }
                 } catch (err) {
                     echo "docker compose down failed: ${err}"
                 }
             }
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'qa/reports/**/*'
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'BICAP-main/qa/reports/**/*'
         }
     }
 }
