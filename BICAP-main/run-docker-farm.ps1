@@ -1,7 +1,8 @@
 param(
     [switch]$FullStack,
     [switch]$NoBuild,
-    [switch]$Logs
+    [switch]$Logs,
+    [int]$FarmWebPort = 3002
 )
 
 $ErrorActionPreference = 'Stop'
@@ -35,6 +36,44 @@ function Invoke-Compose {
     if ($LASTEXITCODE -ne 0) {
         throw "docker compose failed with exit code $LASTEXITCODE"
     }
+}
+
+function Test-TcpPortAvailable {
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$Port
+    )
+
+    $listener = $null
+
+    try {
+        $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, $Port)
+        $listener.Start()
+        return $true
+    } catch {
+        return $false
+    } finally {
+        if ($null -ne $listener) {
+            $listener.Stop()
+        }
+    }
+}
+
+function Resolve-FarmWebPort {
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$PreferredPort
+    )
+
+    $candidatePorts = @($PreferredPort, 3302, 3402, 43002, 43003)
+
+    foreach ($candidate in $candidatePorts | Select-Object -Unique) {
+        if (Test-TcpPortAvailable -Port $candidate) {
+            return $candidate
+        }
+    }
+
+    throw "Could not find an available host port for farm-management-web. Tried: $($candidatePorts -join ', ')"
 }
 
 function Wait-ForHttp {
@@ -76,6 +115,13 @@ try {
 
 Set-Location $repoRoot
 
+$selectedFarmWebPort = Resolve-FarmWebPort -PreferredPort $FarmWebPort
+$env:FARM_WEB_PORT = "$selectedFarmWebPort"
+
+if ($selectedFarmWebPort -ne $FarmWebPort) {
+    Write-Host "Port $FarmWebPort is not available on this machine. Using port $selectedFarmWebPort instead." -ForegroundColor Yellow
+}
+
 $farmStackServices = @(
     'auth-db',
     'auth-service',
@@ -108,7 +154,7 @@ Invoke-Compose -Arguments @('ps')
 
 Write-Host ''
 Write-Host 'Waiting for farm-management-web health endpoint...' -ForegroundColor Cyan
-$farmHealthy = Wait-ForHttp -Url 'http://localhost:3002/health'
+$farmHealthy = Wait-ForHttp -Url "http://localhost:$selectedFarmWebPort/health"
 
 Write-Host ''
 if ($farmHealthy) {
@@ -119,10 +165,10 @@ if ($farmHealthy) {
 
 Write-Host ''
 Write-Host 'Open these URLs after startup:' -ForegroundColor Green
-Write-Host '  Farm web:        http://localhost:3002'
-Write-Host '  Farm login:      http://localhost:3002/login'
-Write-Host '  Dev farm login:  http://localhost:3002/dev/login-as-farm'
-Write-Host '  Health check:    http://localhost:3002/health'
+Write-Host "  Farm web:        http://localhost:$selectedFarmWebPort"
+Write-Host "  Farm login:      http://localhost:$selectedFarmWebPort/login"
+Write-Host "  Dev farm login:  http://localhost:$selectedFarmWebPort/dev/login-as-farm"
+Write-Host "  Health check:    http://localhost:$selectedFarmWebPort/health"
 Write-Host '  Kong gateway:    http://localhost:8000'
 Write-Host '  Kong admin:      http://localhost:8001'
 Write-Host '  RabbitMQ UI:     http://localhost:15672'

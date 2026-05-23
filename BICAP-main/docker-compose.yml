@@ -431,7 +431,7 @@ services:
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/production-batches
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
-      - "3002:3002"
+      - "${FARM_WEB_PORT:-3002}:3002"
     networks:
       - bicap-global-net
 
