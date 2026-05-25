@@ -81,86 +81,151 @@ function extractJiraKey(input) {
     return match ? match[1] : null;
 }
 
-function loadAssignmentState(stateFile) {
-    if (!stateFile || !fs.existsSync(stateFile)) {
-        return {};
+function normalizeWhitespace(input) {
+    return String(input || '')
+        .replace(/\r/g, '')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n+/g, '\n')
+        .trim();
+}
+
+function normalizeErrorSignature(input) {
+    return normalizeWhitespace(input)
+        .replace(/Build:\s*[^\n]+/gi, 'Build: <dynamic>')
+        .replace(/Build URL:\s*[^\n]+/gi, 'Build URL: <dynamic>')
+        .replace(/Branch:\s*[^\n]+/gi, 'Branch: <dynamic>')
+        .replace(/Source branch:\s*[^\n]+/gi, 'Source branch: <dynamic>')
+        .replace(/#[0-9]+/g, '#<n>')
+        .replace(/https?:\/\/\S+/gi, '<url>');
+}
+
+function extractFailureDetail(descriptionText) {
+    const text = String(descriptionText || '').trim();
+    const marker = 'Failure detail:';
+    const markerIndex = text.indexOf(marker);
+    if (markerIndex >= 0) {
+        return text.slice(markerIndex + marker.length).trim();
     }
+
+    return text;
+}
+
+function buildDuplicateSignature({ moduleName, stageName, descriptionText }) {
+    const failureDetail = extractFailureDetail(descriptionText);
+    const normalizedDetail = normalizeErrorSignature(failureDetail);
+    return `${moduleName}::${stageName}::${normalizedDetail}`;
+}
+
+function formatDuplicateSignatureLabel(signature) {
+    return `dup-${slugifyLabelPart(signature).slice(0, 80)}`;
+}
+
+async function searchIssues({ jiraConfig, authHeader, jql, fields, maxResults = 50 }) {
+    const response = await fetch(`${jiraConfig.baseUrl}/rest/api/3/search`, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            Authorization: authHeader,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            jql,
+            maxResults,
+            fields
+        })
+    });
+
+    if (!response.ok) {
+        const failureBody = await response.text();
+        throw new Error(`Jira search failed: ${response.status} ${failureBody}`);
+    }
+
+    const payload = await response.json();
+    return Array.isArray(payload.issues) ? payload.issues : [];
+}
+
+async function countOpenAssignedIssues({ jiraConfig, authHeader, accountId }) {
+    if (!accountId || isPlaceholder(accountId)) {
+        return Number.MAX_SAFE_INTEGER;
+    }
+
+    const jql = [
+        `project = "${escapeJqlValue(jiraConfig.projectKey)}"`,
+        `assignee = "${escapeJqlValue(accountId)}"`,
+        'statusCategory != Done'
+    ].join(' AND ');
 
     try {
-        return readJson(stateFile);
-    } catch (_error) {
-        return {};
+        const issues = await searchIssues({
+            jiraConfig,
+            authHeader,
+            jql,
+            fields: ['assignee'],
+            maxResults: 100
+        });
+        return issues.length;
+    } catch (error) {
+        console.warn(`Cannot count open Jira issues for ${accountId}: ${error.message}`);
+        return Number.MAX_SAFE_INTEGER;
     }
 }
 
-function saveAssignmentState(stateFile, state) {
-    if (!stateFile) {
-        return;
-    }
-
-    fs.mkdirSync(path.dirname(stateFile), { recursive: true });
-    fs.writeFileSync(stateFile, JSON.stringify(state, null, 2));
-}
-
-function hashString(input) {
-    let hash = 0;
-
-    for (let index = 0; index < input.length; index += 1) {
-        hash = ((hash << 5) - hash) + input.charCodeAt(index);
-        hash |= 0;
-    }
-
-    return Math.abs(hash);
-}
-
-function pickAssigneeFromPool({ poolKeys, routingConfig, moduleName, stateFile, stageName, buildNumber }) {
+async function pickAssigneeFromPool({ jiraConfig, authHeader, poolKeys, routingConfig }) {
     if (!Array.isArray(poolKeys) || poolKeys.length === 0) {
         return null;
     }
 
-    const availableKeys = poolKeys.filter((key) => routingConfig.members[key]);
-    if (availableKeys.length === 0) {
+    const availableEntries = poolKeys
+        .map((key) => ({ key, member: routingConfig.members[key] }))
+        .filter((entry) => entry.member);
+
+    if (availableEntries.length === 0) {
         return null;
     }
 
-    try {
-        const state = loadAssignmentState(stateFile);
-        const stateKey = `${moduleName}:poolIndex`;
-        const currentIndex = Number.isInteger(state[stateKey]) ? state[stateKey] : 0;
-        const selectedKey = availableKeys[currentIndex % availableKeys.length];
-        state[stateKey] = (currentIndex + 1) % availableKeys.length;
-        saveAssignmentState(stateFile, state);
+    const workloadEntries = await Promise.all(
+        availableEntries.map(async (entry) => ({
+            ...entry,
+            openIssueCount: await countOpenAssignedIssues({
+                jiraConfig,
+                authHeader,
+                accountId: entry.member.accountId
+            })
+        }))
+    );
 
-        return {
-            key: selectedKey,
-            member: routingConfig.members[selectedKey]
-        };
-    } catch (_error) {
-        const fallbackIndex = hashString(`${moduleName}:${stageName}:${buildNumber}`) % availableKeys.length;
-        const selectedKey = availableKeys[fallbackIndex];
-        return {
-            key: selectedKey,
-            member: routingConfig.members[selectedKey]
-        };
-    }
+    const finiteCounts = workloadEntries
+        .map((entry) => entry.openIssueCount)
+        .filter(Number.isFinite);
+    const minCount = finiteCounts.length > 0 ? Math.min(...finiteCounts) : Number.MAX_SAFE_INTEGER;
+    const leastBusyEntries = workloadEntries.filter((entry) => entry.openIssueCount === minCount);
+    const selectionPool = leastBusyEntries.length > 0 ? leastBusyEntries : availableEntries;
+    const selectedEntry = selectionPool[Math.floor(Math.random() * selectionPool.length)];
+
+    return selectedEntry
+        ? {
+            key: selectedEntry.key,
+            member: selectedEntry.member,
+            openIssueCount: Number.isFinite(selectedEntry.openIssueCount) ? selectedEntry.openIssueCount : null
+        }
+        : null;
 }
 
-function resolveAssignee({ routingConfig, moduleConfig, moduleName, stageName, buildNumber, stateFile }) {
+async function resolveAssignee({ jiraConfig, authHeader, routingConfig, moduleConfig }) {
     if (moduleConfig?.assigneeRole) {
         return {
             key: moduleConfig.assigneeRole,
-            member: routingConfig.members[moduleConfig.assigneeRole] || null
+            member: routingConfig.members[moduleConfig.assigneeRole] || null,
+            openIssueCount: null
         };
     }
 
     if (moduleConfig?.assigneePool) {
         return pickAssigneeFromPool({
+            jiraConfig,
+            authHeader,
             poolKeys: moduleConfig.assigneePool,
-            routingConfig,
-            moduleName,
-            stateFile,
-            stageName,
-            buildNumber
+            routingConfig
         });
     }
 
@@ -247,7 +312,7 @@ async function moveIssueToStatus({ jiraConfig, authHeader, issueKey, statusName 
     }
 }
 
-async function findReusableIssue({ jiraConfig, authHeader, branchName, labels }) {
+async function findReusableIssue({ jiraConfig, authHeader, branchName, labels, duplicateSignature }) {
     const branchIssueKey = extractJiraKey(branchName);
     if (branchIssueKey) {
         return {
@@ -257,39 +322,43 @@ async function findReusableIssue({ jiraConfig, authHeader, branchName, labels })
         };
     }
 
-    const labelClauses = labels.map((label) => `labels = "${escapeJqlValue(label)}"`).join(' AND ');
-    const jql = `project = "${escapeJqlValue(jiraConfig.projectKey)}" AND ${labelClauses} AND statusCategory != Done ORDER BY created DESC`;
-    const response = await fetch(`${jiraConfig.baseUrl}/rest/api/3/search`, {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            Authorization: authHeader,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+    const jqlClauses = [
+        `project = "${escapeJqlValue(jiraConfig.projectKey)}"`,
+        'statusCategory != Done'
+    ];
+
+    if (duplicateSignature) {
+        jqlClauses.push(`labels = "${escapeJqlValue(formatDuplicateSignatureLabel(duplicateSignature))}"`);
+    } else {
+        labels.forEach((label) => {
+            jqlClauses.push(`labels = "${escapeJqlValue(label)}"`);
+        });
+    }
+
+    const jql = `${jqlClauses.join(' AND ')} ORDER BY created DESC`;
+
+    try {
+        const issues = await searchIssues({
+            jiraConfig,
+            authHeader,
             jql,
-            maxResults: 1,
-            fields: ['summary', 'status']
-        })
-    });
+            fields: ['summary', 'status'],
+            maxResults: 10
+        });
 
-    if (!response.ok) {
-        const failureBody = await response.text();
-        console.warn(`Jira duplicate search failed: ${response.status} ${failureBody}`);
+        if (issues.length === 0) {
+            return null;
+        }
+
+        return {
+            key: issues[0].key,
+            url: `${jiraConfig.baseUrl}/browse/${issues[0].key}`,
+            reason: duplicateSignature ? 'duplicate_signature' : 'open_duplicate'
+        };
+    } catch (error) {
+        console.warn(`Jira duplicate search failed: ${error.message}`);
         return null;
     }
-
-    const payload = await response.json();
-    const issues = Array.isArray(payload.issues) ? payload.issues : [];
-    if (issues.length === 0) {
-        return null;
-    }
-
-    return {
-        key: issues[0].key,
-        url: `${jiraConfig.baseUrl}/browse/${issues[0].key}`,
-        reason: 'open_duplicate'
-    };
 }
 
 async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, descriptionText }) {
@@ -300,15 +369,14 @@ async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, d
     const buildNumber = process.env.BUILD_NUMBER || 'manual';
     const branchName = process.env.BRANCH_NAME || process.env.GIT_BRANCH || 'unknown-branch';
     const buildUrl = process.env.BUILD_URL || 'n/a';
-    const stateFile = process.env.JIRA_ASSIGNMENT_STATE_FILE
-        || path.resolve('automation', 'jira', '.assignment-state.json');
-    const selectedAssignee = resolveAssignee({
+    const duplicateSignature = buildDuplicateSignature({ moduleName, stageName, descriptionText });
+    const duplicateSignatureLabel = formatDuplicateSignatureLabel(duplicateSignature);
+    const authHeader = `Basic ${Buffer.from(`${jiraConfig.email}:${jiraConfig.apiToken}`).toString('base64')}`;
+    const selectedAssignee = await resolveAssignee({
+        jiraConfig,
+        authHeader,
         routingConfig,
-        moduleConfig,
-        moduleName,
-        stageName,
-        buildNumber,
-        stateFile
+        moduleConfig
     });
     const assignee = selectedAssignee?.member || null;
     const branchPrefix = moduleConfig?.branchPrefix || 'bugfix/general';
@@ -317,11 +385,12 @@ async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, d
         'automated-bug',
         `module-${moduleName}`,
         stageLabel,
+        duplicateSignatureLabel,
         ...(moduleConfig?.labels || [])
     ];
 
     const summary = truncate(
-        `[${moduleName.toUpperCase()}] ${stageName} failed - ${jobName} #${buildNumber}`,
+        `[${moduleName.toUpperCase()}] ${stageName} failed`,
         240
     );
 
@@ -333,7 +402,8 @@ async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, d
         `Source branch: ${branchName}`,
         `Suggested fix branch: ${branchPrefix}/<JIRA-KEY>-short-description`,
         `Suggested assignee: ${assignee?.displayName || 'Unassigned'}`,
-        `Assignment mode: ${moduleConfig?.assignmentStrategy || 'fixed_owner'}`,
+        `Assignment mode: ${moduleConfig?.assignmentStrategy || 'least_open_random'}`,
+        selectedAssignee?.openIssueCount != null ? `Open tasks before assignment: ${selectedAssignee.openIssueCount}` : '',
         '',
         'Expected fix flow:',
         '1. Developer creates a dedicated bugfix branch from the Jira key.',
@@ -359,13 +429,13 @@ async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, d
         }
     };
 
-    const authHeader = `Basic ${Buffer.from(`${jiraConfig.email}:${jiraConfig.apiToken}`).toString('base64')}`;
     const bugLoggedStatus = process.env.JIRA_STATUS_BUG_LOGGED || 'Bug Logged';
     const reusableIssue = await findReusableIssue({
         jiraConfig,
         authHeader,
         branchName,
-        labels: [...new Set(labels)]
+        labels: [...new Set(labels)],
+        duplicateSignature
     });
 
     if (reusableIssue) {
@@ -391,7 +461,7 @@ async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, d
             console.log(`Reused Jira issue: ${reusableIssue.key} -> ${reusableIssue.url}`);
         }
 
-        if (reusableIssue.reason === 'open_duplicate') {
+        if (reusableIssue.reason !== 'branch_key') {
             await moveIssueToStatus({
                 jiraConfig,
                 authHeader,

@@ -28,23 +28,25 @@
   "moduleRouting": {
     "frontend": {
       "assigneePool": ["frontend_a", "frontend_b"],
-      "assignmentStrategy": "round_robin",
+      "assignmentStrategy": "least_open_random",
       "branchPrefix": "bugfix/frontend",
       "labels": ["frontend", "qa-fix"]
     },
     "backend": {
       "assigneePool": ["backend_a", "backend_b"],
-      "assignmentStrategy": "round_robin",
+      "assignmentStrategy": "least_open_random",
       "branchPrefix": "bugfix/backend",
       "labels": ["backend", "qa-fix"]
     },
     "integration": {
       "assigneeRole": "devops",
+      "assignmentStrategy": "fixed_owner",
       "branchPrefix": "bugfix/integration",
       "labels": ["integration", "qa-fix"]
     },
     "infra": {
       "assigneeRole": "devops",
+      "assignmentStrategy": "fixed_owner",
       "branchPrefix": "bugfix/infra",
       "labels": ["infra", "qa-fix"]
     }
