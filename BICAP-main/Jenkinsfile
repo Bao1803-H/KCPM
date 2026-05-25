@@ -192,11 +192,39 @@ pipeline {
         stage('Scope Summary') {
             steps {
                 script {
-                    def scopedServices = composeServicesForScope(params.QA_SCOPE)
-                    env.QA_TARGETS = qaTargetsForScope(params.QA_SCOPE)
-                    env.QA_DEPLOY_COMMAND = composeUpCommand(params.QA_SCOPE)
-                    env.QA_SCOPE_MODULE = jiraModuleForScope(params.QA_SCOPE)
-                    env.QA_SERVICE_LIST = scopedServices ? scopedServices.join(', ') : 'full-stack'
+                    switch (params.QA_SCOPE) {
+                        case 'frontend':
+                            env.QA_TARGETS = 'http://127.0.0.1:3405/login http://127.0.0.1:3402/health http://127.0.0.1:3401/login http://127.0.0.1:3400/login http://127.0.0.1:3403/login'
+                            env.QA_DEPLOY_COMMAND = 'docker compose up -d --build guest-web retailer-web admin-web farm-management-web shipping-manager-web'
+                            env.QA_SCOPE_MODULE = 'frontend'
+                            env.QA_SERVICE_LIST = 'guest-web, retailer-web, admin-web, farm-management-web, shipping-manager-web'
+                            break
+                        case 'backend':
+                            env.QA_TARGETS = 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083'
+                            env.QA_DEPLOY_COMMAND = 'docker compose up -d --build auth-service admin-service shipping-manager-service'
+                            env.QA_SCOPE_MODULE = 'backend'
+                            env.QA_SERVICE_LIST = 'auth-service, admin-service, shipping-manager-service'
+                            break
+                        case 'integration':
+                            env.QA_TARGETS = 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083 http://127.0.0.1:3405/login http://127.0.0.1:3402/health http://127.0.0.1:3401/login http://127.0.0.1:3400/login http://127.0.0.1:3403/login'
+                            env.QA_DEPLOY_COMMAND = 'docker compose up -d --build guest-web retailer-web admin-web farm-management-web shipping-manager-web auth-service admin-service shipping-manager-service'
+                            env.QA_SCOPE_MODULE = 'integration'
+                            env.QA_SERVICE_LIST = 'guest-web, retailer-web, admin-web, farm-management-web, shipping-manager-web, auth-service, admin-service, shipping-manager-service'
+                            break
+                        case 'infra':
+                            env.QA_TARGETS = 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083'
+                            env.QA_DEPLOY_COMMAND = 'docker compose up -d --build'
+                            env.QA_SCOPE_MODULE = 'infra'
+                            env.QA_SERVICE_LIST = 'full-stack'
+                            break
+                        case 'all':
+                        default:
+                            env.QA_TARGETS = 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083 http://127.0.0.1:3405/login http://127.0.0.1:3402/health http://127.0.0.1:3401/login http://127.0.0.1:3400/login http://127.0.0.1:3403/login'
+                            env.QA_DEPLOY_COMMAND = 'docker compose up -d --build'
+                            env.QA_SCOPE_MODULE = 'integration'
+                            env.QA_SERVICE_LIST = 'full-stack'
+                            break
+                    }
 
                     echo "Selected QA scope: ${params.QA_SCOPE}"
                     echo "Compose deployment: ${env.QA_DEPLOY_COMMAND}"
