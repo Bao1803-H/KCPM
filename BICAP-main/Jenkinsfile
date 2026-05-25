@@ -107,11 +107,11 @@ String composeUpCommand(String scope) {
 }
 
 String qaTargetsForScope(String scope) {
-    def guestPort = System.getenv('GUEST_WEB_PORT') ?: '3405'
-    def farmPort = System.getenv('FARM_WEB_PORT') ?: '3402'
-    def adminPort = System.getenv('ADMIN_WEB_PORT') ?: '3401'
-    def retailerPort = System.getenv('RETAILER_WEB_PORT') ?: '3400'
-    def shippingManagerPort = System.getenv('SHIPPING_MANAGER_WEB_PORT') ?: '3403'
+    def guestPort = env.GUEST_WEB_PORT ?: '3405'
+    def farmPort = env.FARM_WEB_PORT ?: '3402'
+    def adminPort = env.ADMIN_WEB_PORT ?: '3401'
+    def retailerPort = env.RETAILER_WEB_PORT ?: '3400'
+    def shippingManagerPort = env.SHIPPING_MANAGER_WEB_PORT ?: '3403'
 
     switch (scope) {
         case 'frontend':
@@ -369,12 +369,19 @@ Error: ${err}
         }
         always {
             script {
-                try {
-                    inProjectDir {
-                        runCmd('docker compose down -v')
+                def currentBranch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                def isMainBranch = currentBranch == 'main' || currentBranch == 'origin/main' || currentBranch.endsWith('/main')
+
+                if (isMainBranch) {
+                    echo 'Skipping docker compose down on main branch to avoid stopping the shared QA stack.'
+                } else {
+                    try {
+                        inProjectDir {
+                            runCmd('docker compose down -v')
+                        }
+                    } catch (err) {
+                        echo "docker compose down failed: ${err}"
                     }
-                } catch (err) {
-                    echo "docker compose down failed: ${err}"
                 }
             }
             archiveArtifacts allowEmptyArchive: true, artifacts: 'BICAP-main/qa/reports/**/*'
