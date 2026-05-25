@@ -107,11 +107,11 @@ String composeUpCommand(String scope) {
 }
 
 String qaTargetsForScope(String scope) {
-    def guestPort = env.GUEST_WEB_PORT ?: '3405'
-    def farmPort = env.FARM_WEB_PORT ?: '3402'
-    def adminPort = env.ADMIN_WEB_PORT ?: '3401'
-    def retailerPort = env.RETAILER_WEB_PORT ?: '3400'
-    def shippingManagerPort = env.SHIPPING_MANAGER_WEB_PORT ?: '3403'
+    def guestPort = '3405'
+    def farmPort = '3402'
+    def adminPort = '3401'
+    def retailerPort = '3400'
+    def shippingManagerPort = '3403'
 
     switch (scope) {
         case 'frontend':
