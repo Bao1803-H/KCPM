@@ -1,14 +1,19 @@
 const host = process.env.QA_BASE_HOST || '127.0.0.1';
+const guestPort = process.env.GUEST_WEB_PORT || '3405';
+const farmPort = process.env.FARM_WEB_PORT || '3402';
+const adminPort = process.env.ADMIN_WEB_PORT || '3401';
+const retailerPort = process.env.RETAILER_WEB_PORT || '3400';
+const shippingManagerPort = process.env.SHIPPING_MANAGER_WEB_PORT || '3403';
 
 const checks = [
-    { name: 'Guest home', url: `http://${host}:3005/`, expectedStatus: 200 },
-    { name: 'Guest login', url: `http://${host}:3005/login`, expectedStatus: 200 },
-    { name: 'Guest register', url: `http://${host}:3005/register`, expectedStatus: 200 },
-    { name: 'Farm health', url: `http://${host}:3002/health`, expectedStatus: 200, expectedJsonStatus: 'ok' },
-    { name: 'Farm login', url: `http://${host}:3002/login`, expectedStatus: 200 },
-    { name: 'Admin login', url: `http://${host}:3001/login`, expectedStatus: 200 },
-    { name: 'Retailer login', url: `http://${host}:3000/login`, expectedStatus: 200 },
-    { name: 'Shipping manager login', url: `http://${host}:3003/login`, expectedStatus: 200 }
+    { name: 'Guest home', url: `http://${host}:${guestPort}/`, expectedStatus: 200 },
+    { name: 'Guest login', url: `http://${host}:${guestPort}/login`, expectedStatus: 200 },
+    { name: 'Guest register', url: `http://${host}:${guestPort}/register`, expectedStatus: 200 },
+    { name: 'Farm health', url: `http://${host}:${farmPort}/health`, expectedStatus: 200, expectedJsonStatus: 'ok' },
+    { name: 'Farm login', url: `http://${host}:${farmPort}/login`, expectedStatus: 200 },
+    { name: 'Admin login', url: `http://${host}:${adminPort}/login`, expectedStatus: 200 },
+    { name: 'Retailer login', url: `http://${host}:${retailerPort}/login`, expectedStatus: 200 },
+    { name: 'Shipping manager login', url: `http://${host}:${shippingManagerPort}/login`, expectedStatus: 200 }
 ];
 
 async function assertResponse(check) {

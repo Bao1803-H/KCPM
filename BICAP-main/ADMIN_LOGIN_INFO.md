@@ -17,8 +17,8 @@
 ## 🌐 URL Truy cập:
 
 ### 1. Admin Web Interface:
-- **URL:** http://localhost:3001
-- **Port:** 3001
+- **URL:** http://localhost:3401
+- **Port:** 3401
 
 ### 2. API Gateway (Kong):
 - **Public URL:** http://localhost:8000
@@ -33,7 +33,7 @@
 ## 🧪 Test Đăng nhập:
 
 ### Cách 1: Qua Admin Web
-1. Mở trình duyệt: **http://localhost:3001**
+1. Mở trình duyệt: **http://localhost:3401**
 2. Đăng nhập với:
    - **Email:** `admin@gmail.com`
    - **Password:** `admin123`

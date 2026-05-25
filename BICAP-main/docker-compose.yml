@@ -51,7 +51,7 @@ services:
         - BLOCKCHAIN_SERVICE_URL=http://kong-gateway:8000/api/blockchain
         - API_GATEWAY_BASE_URL=http://kong-gateway:8000
       ports:
-        - "3005:3005"
+        - "${GUEST_WEB_PORT:-3405}:3005"
       networks:
         - bicap-global-net
 
@@ -129,8 +129,6 @@ services:
       - "3308:3306"
     networks:
       - bicap-global-net
-    volumes:
-      - ./database/farm-production-database/bicap_farm_db.sql:/docker-entrypoint-initdb.d/01_bicap_farm_db.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
@@ -181,8 +179,6 @@ services:
       - "3309:3306"
     networks:
       - bicap-global-net
-    volumes:
-      - ./database/trading-order-db/bicap_order_db.sql:/docker-entrypoint-initdb.d/01_bicap_order_db.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
@@ -376,7 +372,7 @@ services:
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
-      - "3000:3000"
+      - "${RETAILER_WEB_PORT:-3400}:3000"
     networks:
       - bicap-global-net
 
@@ -401,7 +397,7 @@ services:
       - ADMIN_SERVICE_URL=http://admin-service:8085
       - TRADING_ORDER_SERVICE_URL=http://trading-order-service:8082
     ports:
-      - "3001:3001"
+      - "${ADMIN_WEB_PORT:-3401}:3001"
     networks:
       - bicap-global-net
     
@@ -431,7 +427,7 @@ services:
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/production-batches
       - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
-      - "${FARM_WEB_PORT:-3002}:3002"
+      - "${FARM_WEB_PORT:-3402}:3002"
     networks:
       - bicap-global-net
 
@@ -455,7 +451,7 @@ services:
       - SHIPPING_SERVICE_URL=http://kong-gateway:8000/api
       - REACT_APP_SHIPPING_API_URL=http://localhost:8000/api
     ports:
-      - "3003:3003"
+      - "${SHIPPING_MANAGER_WEB_PORT:-3403}:3003"
     networks:
       - bicap-global-net
 
@@ -514,8 +510,6 @@ services:
       - "3312:3306"
     networks:
       - bicap-global-net
-    volumes:
-      - ./database/image-storage-db/image_storage_db.sql:/docker-entrypoint-initdb.d/01_image_storage_db.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s

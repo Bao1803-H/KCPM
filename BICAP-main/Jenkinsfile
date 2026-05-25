@@ -107,9 +107,15 @@ String composeUpCommand(String scope) {
 }
 
 String qaTargetsForScope(String scope) {
+    def guestPort = System.getenv('GUEST_WEB_PORT') ?: '3405'
+    def farmPort = System.getenv('FARM_WEB_PORT') ?: '3402'
+    def adminPort = System.getenv('ADMIN_WEB_PORT') ?: '3401'
+    def retailerPort = System.getenv('RETAILER_WEB_PORT') ?: '3400'
+    def shippingManagerPort = System.getenv('SHIPPING_MANAGER_WEB_PORT') ?: '3403'
+
     switch (scope) {
         case 'frontend':
-            return 'http://127.0.0.1:3005/login http://127.0.0.1:3002/health http://127.0.0.1:3001/login http://127.0.0.1:3000/login http://127.0.0.1:3003/login'
+            return "http://127.0.0.1:${guestPort}/login http://127.0.0.1:${farmPort}/health http://127.0.0.1:${adminPort}/login http://127.0.0.1:${retailerPort}/login http://127.0.0.1:${shippingManagerPort}/login"
         case 'backend':
             return 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083'
         case 'infra':
@@ -117,7 +123,7 @@ String qaTargetsForScope(String scope) {
         case 'integration':
         case 'all':
         default:
-            return 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083 http://127.0.0.1:3005/login http://127.0.0.1:3002/health http://127.0.0.1:3001/login http://127.0.0.1:3000/login http://127.0.0.1:3003/login'
+            return "tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083 http://127.0.0.1:${guestPort}/login http://127.0.0.1:${farmPort}/health http://127.0.0.1:${adminPort}/login http://127.0.0.1:${retailerPort}/login http://127.0.0.1:${shippingManagerPort}/login"
     }
 }
 
