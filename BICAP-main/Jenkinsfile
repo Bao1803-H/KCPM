@@ -156,6 +156,11 @@ pipeline {
             choices: ['all', 'frontend', 'backend', 'integration', 'infra'],
             description: 'Select the QA scope that the tester wants Jenkins to run.'
         )
+        choice(
+            name: 'QA_FAILURE_SCENARIO',
+            choices: ['none', 'frontend_a', 'frontend_b', 'backend_a', 'backend_b'],
+            description: 'Optional failure scenario to simulate a specific bug assignment during QA.'
+        )
     }
 
     environment {
@@ -164,6 +169,7 @@ pipeline {
         QA_DEPLOY_COMMAND = ''
         QA_SCOPE_MODULE = ''
         QA_SERVICE_LIST = ''
+        QA_FAILURE_SCENARIO = "${params.QA_FAILURE_SCENARIO}"
     }
 
     stages {
@@ -302,11 +308,13 @@ Error: ${err}
                 script {
                     try {
                         inProjectDir {
-                            runNpm('install --prefix clients/web-app/shipping-manager-web')
-                            runNpm('run build --prefix clients/web-app/shipping-manager-web')
-                            runNpm('install --prefix clients/web-app/farm-management-web')
-                            runNpm('run test:smoke --prefix clients/web-app/farm-management-web')
-                            runCmd('node qa/scripts/frontend-smoke.mjs')
+                            withEnv(["QA_FAILURE_SCENARIO=${params.QA_FAILURE_SCENARIO}"]) {
+                                runNpm('install --prefix clients/web-app/shipping-manager-web')
+                                runNpm('run build --prefix clients/web-app/shipping-manager-web')
+                                runNpm('install --prefix clients/web-app/farm-management-web')
+                                runNpm('run test:smoke --prefix clients/web-app/farm-management-web')
+                                runCmd('node qa/scripts/frontend-smoke.mjs')
+                            }
                         }
                     } catch (err) {
                         writeProjectFile(
@@ -334,7 +342,9 @@ Error: ${err}
                 script {
                     try {
                         inProjectDir {
-                            runNpx('--yes newman run qa/postman/bicap-api-smoke.postman_collection.json -e qa/postman/local.postman_environment.json --reporters cli,junit --reporter-junit-export qa/reports/newman-results.xml')
+                            withEnv(["QA_FAILURE_SCENARIO=${params.QA_FAILURE_SCENARIO}"]) {
+                                runNpx('--yes newman run qa/postman/bicap-api-smoke.postman_collection.json -e qa/postman/local.postman_environment.json --reporters cli,junit --reporter-junit-export qa/reports/newman-results.xml')
+                            }
                         }
                     } catch (err) {
                         writeProjectFile(

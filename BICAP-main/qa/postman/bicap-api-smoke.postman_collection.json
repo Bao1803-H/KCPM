@@ -85,6 +85,8 @@
           "script": {
             "type": "text/javascript",
             "exec": [
+              "const failureScenario = pm.environment.get('QA_FAILURE_SCENARIO') || 'none';",
+              "",
               "pm.test('Dashboard stats should return 200', function () {",
               "    pm.response.to.have.status(200);",
               "});",
@@ -95,7 +97,13 @@
               "    pm.expect(jsonData).to.have.property('totalUsers');",
               "    pm.expect(jsonData).to.have.property('totalFarms');",
               "    pm.expect(jsonData).to.have.property('totalOrders');",
-              "});"
+              "});",
+              "",
+              "if (failureScenario === 'backend_a') {",
+              "    pm.test('Backend scenario backend_a should expose totalWarehouses', function () {",
+              "        pm.expect(jsonData).to.have.property('totalWarehouses');",
+              "    });",
+              "}"
             ]
           }
         }
@@ -209,13 +217,23 @@
           "script": {
             "type": "text/javascript",
             "exec": [
+              "const failureScenario = pm.environment.get('QA_FAILURE_SCENARIO') || 'none';",
+              "",
               "pm.test('Get drivers should return 200', function () {",
               "    pm.response.to.have.status(200);",
               "});",
               "",
               "pm.test('Get drivers should return an array', function () {",
               "    pm.expect(pm.response.json()).to.be.an('array');",
-              "});"
+              "});",
+              "",
+              "if (failureScenario === 'backend_b') {",
+              "    pm.test('Backend scenario backend_b should return non-empty driverCode on first entry', function () {",
+              "        const drivers = pm.response.json();",
+              "        pm.expect(drivers[0]).to.have.property('driverCode');",
+              "        pm.expect(drivers[0].driverCode).to.eql('QA-EXPECTED-DRIVER-CODE');",
+              "    });",
+              "}"
             ]
           }
         }

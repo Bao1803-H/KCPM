@@ -4,6 +4,7 @@ const farmPort = process.env.FARM_WEB_PORT || '3402';
 const adminPort = process.env.ADMIN_WEB_PORT || '3401';
 const retailerPort = process.env.RETAILER_WEB_PORT || '3400';
 const shippingManagerPort = process.env.SHIPPING_MANAGER_WEB_PORT || '3403';
+const failureScenario = process.env.QA_FAILURE_SCENARIO || 'none';
 
 const checks = [
     { name: 'Guest home', url: `http://${host}:${guestPort}/`, expectedStatus: 200 },
@@ -41,6 +42,10 @@ async function main() {
     for (const check of checks) {
         await assertResponse(check);
         console.log(`Smoke passed: ${check.name}`);
+    }
+
+    if (failureScenario === 'frontend_b') {
+        throw new Error('Frontend scenario frontend_b: shipping manager login page missing required meta viewport tag');
     }
 }
 

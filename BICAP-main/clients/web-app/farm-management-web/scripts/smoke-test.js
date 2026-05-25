@@ -3,6 +3,8 @@ const net = require('net');
 const path = require('path');
 const { spawn } = require('child_process');
 
+const failureScenario = process.env.QA_FAILURE_SCENARIO || 'none';
+
 function getFreePort() {
     return new Promise((resolve, reject) => {
         const server = net.createServer();
@@ -64,6 +66,10 @@ async function main() {
         assert.strictEqual(healthResponse.status, 200, 'Health endpoint should return 200');
         const health = await healthResponse.json();
         assert.strictEqual(health.status, 'ok', 'Health payload should report ok');
+
+        if (failureScenario === 'frontend_a') {
+            throw new Error('Frontend scenario frontend_a: farm management health payload should include qaReady=true');
+        }
 
         const homeResponse = await fetch(`${baseUrl}/`);
         assert.strictEqual(homeResponse.status, 200, 'Home page should return 200');
