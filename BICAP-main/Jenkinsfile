@@ -299,7 +299,17 @@ pipeline {
                     echo "Executing deploy: ${deployCmd}"
                     try {
                         inProjectDir {
+                            // Check Docker is available
+                            runCmd("docker --version")
+                            runCmd("docker compose version")
+                            // List current containers
+                            runCmd("docker compose ps")
+                            // Run deploy
                             runCmd(deployCmd)
+                            // Wait a moment for containers to start
+                            sleep 5
+                            // Check containers after deploy
+                            runCmd("docker compose ps")
                         }
                     } catch (err) {
                         def errorMsg = err.toString()
@@ -312,6 +322,7 @@ pipeline {
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
 Selected Scope: ${params.QA_SCOPE ?: 'all'}
+Deploy Command: ${deployCmd}
 Error: ${err}
 """
                         )
@@ -325,22 +336,32 @@ Error: ${err}
         stage('Wait For Targets') {
             steps {
                 script {
+                    def targets = env.QA_TARGETS
+                    echo "Waiting for targets: ${targets}"
                     try {
                         inProjectDir {
-                            runCmd("node qa/scripts/wait-for-targets.mjs ${env.QA_TARGETS}")
+                            // Check Docker containers status
+                            runCmd("docker compose ps")
+                            // Run wait for targets with timeout
+                            runCmd("node qa/scripts/wait-for-targets.mjs ${targets}")
                         }
                     } catch (err) {
                         def errorMsg = err.toString()
                         def detectedService = detectServiceFromError(errorMsg)
-                        // Use detected service, or fallback to QA_SCOPE_MODULE
                         def moduleToReport = detectedService ?: (env.QA_SCOPE_MODULE ?: 'integration')
+                        // Capture container logs on failure
+                        try {
+                            runCmd("docker compose logs --tail=20")
+                        } catch (logErr) {
+                            echo "Could not capture logs: ${logErr}"
+                        }
                         writeProjectFile(
                             "${env.QA_REPORT_DIR}/wait-targets-failure.txt",
                             """Stage: Wait For Targets
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
 Selected Scope: ${params.QA_SCOPE ?: 'all'}
-Targets: ${env.QA_TARGETS}
+Targets: ${targets}
 Error: ${err}
 """
                         )
