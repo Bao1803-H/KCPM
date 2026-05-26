@@ -66,7 +66,7 @@ def reportJiraBug(String module, String stageName, String reportFile) {
 
 String detectServiceFromError(String errorText) {
     if (!errorText) {
-        return 'integration'
+        return null
     }
 
     def lowerError = errorText.toLowerCase()
@@ -92,7 +92,7 @@ String detectServiceFromError(String errorText) {
     if (lowerError.contains('health')) return 'farm-management-web'
     if (lowerError.contains('token')) return 'auth-service'
 
-    return 'integration'
+    return null
 }
 
 def transitionJiraIssue(String issueKey, String statusName) {
@@ -291,16 +291,19 @@ pipeline {
                         }
                     } catch (err) {
                         def errorMsg = err.toString()
-                        def detectedModule = detectServiceFromError(errorMsg)
+                        def detectedService = detectServiceFromError(errorMsg)
+                        // Use detected service, or fallback to QA_SCOPE_MODULE
+                        def moduleToReport = detectedService ?: (env.QA_SCOPE_MODULE ?: 'integration')
                         writeProjectFile(
                             "${env.QA_REPORT_DIR}/deploy-failure.txt",
                             """Stage: Deploy Test Stack
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
+Selected Scope: ${params.QA_SCOPE ?: 'all'}
 Error: ${err}
 """
                         )
-                        reportJiraBug(detectedModule, 'Deploy Test Stack', "${env.QA_REPORT_DIR}/deploy-failure.txt")
+                        reportJiraBug(moduleToReport, 'Deploy Test Stack', "${env.QA_REPORT_DIR}/deploy-failure.txt")
                         throw err
                     }
                 }
@@ -316,17 +319,20 @@ Error: ${err}
                         }
                     } catch (err) {
                         def errorMsg = err.toString()
-                        def detectedModule = detectServiceFromError(errorMsg)
+                        def detectedService = detectServiceFromError(errorMsg)
+                        // Use detected service, or fallback to QA_SCOPE_MODULE
+                        def moduleToReport = detectedService ?: (env.QA_SCOPE_MODULE ?: 'integration')
                         writeProjectFile(
                             "${env.QA_REPORT_DIR}/wait-targets-failure.txt",
                             """Stage: Wait For Targets
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
+Selected Scope: ${params.QA_SCOPE ?: 'all'}
 Targets: ${env.QA_TARGETS}
 Error: ${err}
 """
                         )
-                        reportJiraBug(detectedModule, 'Wait For Targets', "${env.QA_REPORT_DIR}/wait-targets-failure.txt")
+                        reportJiraBug(moduleToReport, 'Wait For Targets', "${env.QA_REPORT_DIR}/wait-targets-failure.txt")
                         throw err
                     }
                 }
@@ -347,18 +353,18 @@ Error: ${err}
                         }
                     } catch (err) {
                         def errorMsg = err.toString()
-                        def detectedModule = detectServiceFromError(errorMsg)
+                        def detectedService = detectServiceFromError(errorMsg)
+                        def moduleToReport = detectedService ?: 'infra'
                         writeProjectFile(
                             "${env.QA_REPORT_DIR}/infra-failure.txt",
                             """Stage: Infrastructure QA
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
 Selected scope: ${params.QA_SCOPE}
-Detected Module: ${detectedModule}
 Error: ${err}
 """
                         )
-                        reportJiraBug(detectedModule, 'Infrastructure QA', "${env.QA_REPORT_DIR}/infra-failure.txt")
+                        reportJiraBug(moduleToReport, 'Infrastructure QA', "${env.QA_REPORT_DIR}/infra-failure.txt")
                         throw err
                     }
                 }
