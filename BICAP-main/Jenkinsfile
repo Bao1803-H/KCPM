@@ -1,4 +1,7 @@
 def runCmd(String command) {
+    if (!command) {
+        error("runCmd received null or empty command")
+    }
     if (isUnix()) {
         sh(script: command)
     } else {
@@ -32,6 +35,9 @@ String extractJiraKey(String branchName) {
 }
 
 def runNpm(String args) {
+    if (!args) {
+        error("runNpm received null or empty args")
+    }
     if (isUnix()) {
         sh(script: "npm ${args}")
     } else {
@@ -40,6 +46,9 @@ def runNpm(String args) {
 }
 
 def runNpx(String args) {
+    if (!args) {
+        error("runNpx received null or empty args")
+    }
     if (isUnix()) {
         sh(script: "npx ${args}")
     } else {
@@ -48,6 +57,9 @@ def runNpx(String args) {
 }
 
 def ensureDir(String path) {
+    if (!path) {
+        error("ensureDir received null or empty path")
+    }
     if (isUnix()) {
         sh(script: "mkdir -p ${path}")
     } else {
@@ -56,6 +68,10 @@ def ensureDir(String path) {
 }
 
 def reportJiraBug(String module, String stageName, String reportFile) {
+    if (!module || !stageName || !reportFile) {
+        echo "Skipping reportJiraBug: missing required parameters (module=${module}, stage=${stageName}, file=${reportFile})"
+        return
+    }
     def escapedStage = stageName.replace('"', '\\"')
     def escapedFile = reportFile.replace('"', '\\"')
     def escapedModule = module.replace('"', '\\"')
@@ -285,17 +301,22 @@ pipeline {
         stage('Deploy Test Stack') {
             steps {
                 script {
+                    def deployCmd = env.QA_DEPLOY_COMMAND
+                    if (!deployCmd) {
+                        error("QA_DEPLOY_COMMAND is null or empty. QA_SCOPE=${params.QA_SCOPE}")
+                    }
+                    echo "Executing deploy: ${deployCmd}"
                     try {
                         inProjectDir {
-                            runCmd(env.QA_DEPLOY_COMMAND)
+                            runCmd(deployCmd)
                         }
                     } catch (err) {
                         def errorMsg = err.toString()
                         def detectedService = detectServiceFromError(errorMsg)
-                        // Use detected service, or fallback to QA_SCOPE_MODULE
                         def moduleToReport = detectedService ?: (env.QA_SCOPE_MODULE ?: 'integration')
+                        def reportFile = "${env.QA_REPORT_DIR}/deploy-failure.txt"
                         writeProjectFile(
-                            "${env.QA_REPORT_DIR}/deploy-failure.txt",
+                            reportFile,
                             """Stage: Deploy Test Stack
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
@@ -303,7 +324,7 @@ Selected Scope: ${params.QA_SCOPE ?: 'all'}
 Error: ${err}
 """
                         )
-                        reportJiraBug(moduleToReport, 'Deploy Test Stack', "${env.QA_REPORT_DIR}/deploy-failure.txt")
+                        reportJiraBug(moduleToReport, 'Deploy Test Stack', reportFile)
                         throw err
                     }
                 }
