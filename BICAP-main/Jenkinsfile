@@ -242,35 +242,43 @@ pipeline {
                 script {
                     def scope = params.get('QA_SCOPE', 'all')?.toString()?.trim() ?: 'all'
 
-                    echo "DEBUG scope value: '${scope}', equals frontend: ${scope == 'frontend'}"
+                    echo "DEBUG scope value: '${scope}'"
 
-                    if (scope == 'frontend') {
-                        env.QA_TARGETS = 'http://127.0.0.1:3405/login http://127.0.0.1:3402/health http://127.0.0.1:3401/login http://127.0.0.1:3400/login http://127.0.0.1:3403/login'
-                        env.QA_DEPLOY_COMMAND = 'docker compose up -d --build guest-web retailer-web admin-web farm-management-web shipping-manager-web'
-                        env.QA_SCOPE_MODULE = 'frontend'
-                        env.QA_SERVICE_LIST = 'guest-web, retailer-web, admin-web, farm-management-web, shipping-manager-web'
-                    } else if (scope == 'backend') {
-                        env.QA_TARGETS = 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083'
-                        env.QA_DEPLOY_COMMAND = 'docker compose up -d --build auth-service admin-service shipping-manager-service'
-                        env.QA_SCOPE_MODULE = 'backend'
-                        env.QA_SERVICE_LIST = 'auth-service, admin-service, shipping-manager-service'
-                    } else if (scope == 'integration') {
-                        env.QA_TARGETS = 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083 http://127.0.0.1:3405/login http://127.0.0.1:3402/health http://127.0.0.1:3401/login http://127.0.0.1:3400/login http://127.0.0.1:3403/login'
-                        env.QA_DEPLOY_COMMAND = 'docker compose up -d --build guest-web retailer-web admin-web farm-management-web shipping-manager-web auth-service admin-service shipping-manager-service'
-                        env.QA_SCOPE_MODULE = 'integration'
-                        env.QA_SERVICE_LIST = 'guest-web, retailer-web, admin-web, farm-management-web, shipping-manager-web, auth-service, admin-service, shipping-manager-service'
-                    } else if (scope == 'infra') {
-                        env.QA_TARGETS = 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083'
-                        env.QA_DEPLOY_COMMAND = 'docker compose up -d --build'
-                        env.QA_SCOPE_MODULE = 'infra'
-                        env.QA_SERVICE_LIST = 'full-stack'
-                    } else {
-                        // default: all
-                        env.QA_TARGETS = 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083 http://127.0.0.1:3405/login http://127.0.0.1:3402/health http://127.0.0.1:3401/login http://127.0.0.1:3400/login http://127.0.0.1:3403/login'
-                        env.QA_DEPLOY_COMMAND = 'docker compose up -d --build'
-                        env.QA_SCOPE_MODULE = 'integration'
-                        env.QA_SERVICE_LIST = 'full-stack'
-                    }
+                    // Map-based configuration - more reliable in Jenkins
+                    def scopeConfig = [
+                        'frontend': [
+                            targets: 'http://127.0.0.1:3405/login http://127.0.0.1:3402/health http://127.0.0.1:3401/login http://127.0.0.1:3400/login http://127.0.0.1:3403/login',
+                            deploy: 'docker compose up -d --build guest-web retailer-web admin-web farm-management-web shipping-manager-web',
+                            module: 'frontend',
+                            services: 'guest-web, retailer-web, admin-web, farm-management-web, shipping-manager-web'
+                        ],
+                        'backend': [
+                            targets: 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083',
+                            deploy: 'docker compose up -d --build auth-service admin-service shipping-manager-service',
+                            module: 'backend',
+                            services: 'auth-service, admin-service, shipping-manager-service'
+                        ],
+                        'integration': [
+                            targets: 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083 http://127.0.0.1:3405/login http://127.0.0.1:3402/health http://127.0.0.1:3401/login http://127.0.0.1:3400/login http://127.0.0.1:3403/login',
+                            deploy: 'docker compose up -d --build guest-web retailer-web admin-web farm-management-web shipping-manager-web auth-service admin-service shipping-manager-service',
+                            module: 'integration',
+                            services: 'guest-web, retailer-web, admin-web, farm-management-web, shipping-manager-web, auth-service, admin-service, shipping-manager-service'
+                        ],
+                        'infra': [
+                            targets: 'tcp://127.0.0.1:8088 tcp://127.0.0.1:8085 tcp://127.0.0.1:8083',
+                            deploy: 'docker compose up -d --build',
+                            module: 'infra',
+                            services: 'full-stack'
+                        ]
+                    ]
+
+                    // Get config for scope, default to 'all' (integration) if not found
+                    def config = scopeConfig.containsKey(scope) ? scopeConfig[scope] : scopeConfig['integration']
+
+                    env.QA_TARGETS = config.targets
+                    env.QA_DEPLOY_COMMAND = config.deploy
+                    env.QA_SCOPE_MODULE = config.module
+                    env.QA_SERVICE_LIST = config.services
 
                     echo "Selected QA scope: ${scope}"
                     echo "Compose deployment: ${env.QA_DEPLOY_COMMAND}"
