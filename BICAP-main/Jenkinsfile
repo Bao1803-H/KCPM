@@ -306,8 +306,9 @@ pipeline {
                             runCmd("docker compose ps")
                             // Run deploy
                             runCmd(deployCmd)
-                            // Wait a moment for containers to start
-                            sleep 5
+                            // Wait longer for containers to fully start (web apps need more time)
+                            echo "Waiting 60 seconds for services to be ready..."
+                            sleep 60
                             // Check containers after deploy
                             runCmd("docker compose ps")
                         }
@@ -342,8 +343,8 @@ Error: ${err}
                         inProjectDir {
                             // Check Docker containers status
                             runCmd("docker compose ps")
-                            // Run wait for targets with timeout
-                            runCmd("node qa/scripts/wait-for-targets.mjs ${targets}")
+                            // Run wait for targets with longer timeout
+                            runCmd("QA_WAIT_TIMEOUT_MS=300000 node qa/scripts/wait-for-targets.mjs ${targets}")
                         }
                     } catch (err) {
                         def errorMsg = err.toString()
@@ -351,7 +352,7 @@ Error: ${err}
                         def moduleToReport = detectedService ?: (env.QA_SCOPE_MODULE ?: 'integration')
                         // Capture container logs on failure
                         try {
-                            runCmd("docker compose logs --tail=20")
+                            runCmd("docker compose logs --tail=50")
                         } catch (logErr) {
                             echo "Could not capture logs: ${logErr}"
                         }
