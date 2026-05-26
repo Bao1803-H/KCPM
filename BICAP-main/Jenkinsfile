@@ -206,7 +206,7 @@ pipeline {
         )
         choice(
             name: 'QA_FAILURE_SCENARIO',
-            choices: ['none', 'frontend_a', 'frontend_b', 'backend_a', 'backend_b'],
+            choices: ['none', 'frontend_a', 'frontend_b', 'frontend_c', 'frontend_d', 'frontend_e', 'backend_a', 'backend_b', 'backend_c', 'backend_d'],
             description: 'Optional failure scenario to simulate a specific bug assignment during QA.'
         )
     }

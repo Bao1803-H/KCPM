@@ -238,6 +238,119 @@
           }
         }
       ]
+    },
+    {
+      "name": "Auth Service - Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{admin_refresh_token}}\"\n}"
+        },
+        "url": {
+          "raw": "{{auth_base_url}}/api/auth/refresh",
+          "host": [
+            "{{auth_base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "refresh"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const failureScenario = pm.environment.get('QA_FAILURE_SCENARIO') || 'none';",
+              "",
+              "pm.test('Refresh token should return 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "if (failureScenario === 'backend_c') {",
+              "    pm.test('Backend scenario backend_c: refresh token should return valid accessToken', function () {",
+              "        const jsonData = pm.response.json();",
+              "        pm.expect(jsonData).to.have.property('accessToken');",
+              "        pm.expect(jsonData.accessToken).to.not.be.empty;",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Service - User List Pagination",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{admin_base_url}}/api/v1/admin/users?page=1&limit=10",
+          "host": [
+            "{{admin_base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const failureScenario = pm.environment.get('QA_FAILURE_SCENARIO') || 'none';",
+              "",
+              "pm.test('User list should return 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('User list should return an array', function () {",
+              "    pm.expect(pm.response.json()).to.be.an('array');",
+              "});",
+              "",
+              "if (failureScenario === 'backend_d') {",
+              "    pm.test('Backend scenario backend_d: user list should include pagination metadata', function () {",
+              "        const jsonData = pm.response.json();",
+              "        pm.expect(jsonData).to.have.property('meta');",
+              "        pm.expect(jsonData.meta).to.have.property('total');",
+              "        pm.expect(jsonData.meta).to.have.property('page');",
+              "        pm.expect(jsonData.meta).to.have.property('limit');",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ]
     }
   ]
 }

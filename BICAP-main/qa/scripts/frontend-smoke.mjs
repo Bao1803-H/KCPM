@@ -44,12 +44,25 @@ async function main() {
         console.log(`Smoke passed: ${check.name}`);
     }
 
+    // Frontend failure scenarios
     if (failureScenario === 'frontend_a') {
         throw new Error('Frontend scenario frontend_a: Admin web login page missing CSRF token in form');
     }
 
     if (failureScenario === 'frontend_b') {
         throw new Error('Frontend scenario frontend_b: Shipping manager login page missing required meta viewport tag');
+    }
+
+    if (failureScenario === 'frontend_c') {
+        throw new Error('Frontend scenario frontend_c: Guest web registration form missing email validation attribute');
+    }
+
+    if (failureScenario === 'frontend_d') {
+        throw new Error('Frontend scenario frontend_d: Farm management web dashboard missing translation for harvest status');
+    }
+
+    if (failureScenario === 'frontend_e') {
+        throw new Error('Frontend scenario frontend_e: Retailer web product listing page missing pagination controls');
     }
 }
 

@@ -1,114 +1,152 @@
 # BICAP QA Testing Checklist
 
-## 1. TEST CASES - CÓ THỂ TEST QUA JENKINS
+## 1. TEST CASES
 
 ### Frontend Test Cases
 
 | ID | Scenario | Module | Service | Assignee | Bug Description |
 |----|----------|--------|---------|----------|-----------------|
-| TC-FE-01 | `frontend_a` | frontend | admin-web | Member 2 - Frontend Developer A | Admin web login page missing CSRF token in form |
-| TC-FE-02 | `frontend_b` | frontend | shipping-manager-web | Member 3 - Frontend Developer B | Shipping manager login page missing required meta viewport tag |
+| TC-FE-01 | `frontend_a` | frontend | admin-web | Member 2 | Admin web login page missing CSRF token in form |
+| TC-FE-02 | `frontend_b` | frontend | shipping-manager-web | Member 3 | Shipping manager login page missing meta viewport tag |
+| TC-FE-03 | `frontend_c` | frontend | guest-web | Member 2/3 | Guest web registration form missing email validation |
+| TC-FE-04 | `frontend_d` | frontend | farm-management-web | Member 2/3 | Farm management web dashboard missing translation |
+| TC-FE-05 | `frontend_e` | frontend | retailer-web | Member 2/3 | Retailer web product listing page missing pagination |
 
 ### Backend Test Cases
 
 | ID | Scenario | Module | Service | Assignee | Bug Description |
 |----|----------|--------|---------|----------|-----------------|
-| TC-BE-01 | `backend_a` | backend | admin-service | Member 4 - Backend Developer A | Dashboard stats missing totalWarehouses field |
-| TC-BE-02 | `backend_b` | backend | shipping-manager-service | Member 5 - Backend Developer B | Driver code does not match expected QA-EXPECTED-DRIVER-CODE |
+| TC-BE-01 | `backend_a` | backend | admin-service | Member 4 | Dashboard stats missing totalWarehouses field |
+| TC-BE-02 | `backend_b` | backend | shipping-manager-service | Member 5 | Driver code does not match expected value |
+| TC-BE-03 | `backend_c` | backend | auth-service | Member 4/5 | Auth service token refresh endpoint returns 500 |
+| TC-BE-04 | `backend_d` | backend | admin-service | Member 4/5 | Admin service user list missing pagination metadata |
 
 ---
 
-## 2. CÁCH CHẠY TEST
+## 2. LỖI VÀ TEST CASE MỚI
 
-### QA_SCOPE Options
+### Lỗi mới - Frontend
 
-| Scope | Description |
-|-------|-------------|
-| `all` | Test toàn bộ (frontend + backend) |
-| `frontend` | Test frontend only |
-| `backend` | Test backend only |
-| `integration` | Test integration (giống all) |
-| `infra` | Chỉ kiểm tra infrastructure |
+| Lỗi ID | Scenario | Error Message | Service | Jira Labels | Assignee |
+|---------|----------|---------------|---------|-------------|----------|
+| ERR-FE-01 | `frontend_c` | Guest web registration form missing email validation | guest-web | guest-web | Member 2/3 |
+| ERR-FE-02 | `frontend_d` | Farm management web dashboard missing translation | farm-management-web | farm-management-web | Member 2/3 |
+| ERR-FE-03 | `frontend_e` | Retailer web product listing page missing pagination | retailer-web | retailer-web | Member 2/3 |
 
-### QA_FAILURE_SCENARIO Options
+### Lỗi mới - Backend
 
-| Scenario | Kết quả |
-|----------|---------|
-| `none` | Test pass (không có bug) |
-| `frontend_a` | Bug: admin-web |
-| `frontend_b` | Bug: shipping-manager-web |
-| `backend_a` | Bug: admin-service |
-| `backend_b` | Bug: shipping-manager-service |
+| Lỗi ID | Scenario | Error Message | Service | Jira Labels | Assignee |
+|---------|----------|---------------|---------|-------------|----------|
+| ERR-BE-01 | `backend_c` | Auth service token refresh endpoint returns 500 | auth-service | auth-service | Member 4/5 |
+| ERR-BE-02 | `backend_d` | User list missing pagination metadata | admin-service | admin-service | Member 4/5 |
 
 ---
 
-## 3. HƯỚNG DẪN CHẠY
+## 3. TẤT CẢ QA_FAILURE_SCENARIO
 
-### Test TC-FE-01: Admin Web Bug
+| Scenario | Module | Service | Error Description | Assignee |
+|----------|--------|---------|-------------------|----------|
+| `none` | - | - | Pass (không bug) | - |
+| `frontend_a` | frontend | admin-web | Admin login missing CSRF token | Member 2 |
+| `frontend_b` | frontend | shipping-manager-web | Shipping login missing viewport | Member 3 |
+| `frontend_c` | frontend | guest-web | Guest registration missing email validation | Member 2/3 |
+| `frontend_d` | frontend | farm-management-web | Farm dashboard missing translation | Member 2/3 |
+| `frontend_e` | frontend | retailer-web | Retailer listing missing pagination | Member 2/3 |
+| `backend_a` | backend | admin-service | Dashboard missing totalWarehouses | Member 4 |
+| `backend_b` | backend | shipping-manager-service | Driver code mismatch | Member 5 |
+| `backend_c` | backend | auth-service | Token refresh returns 500 | Member 4/5 |
+| `backend_d` | backend | admin-service | User list missing pagination | Member 4/5 |
+
+---
+
+## 4. HƯỚNG DẪN CHẠY TEST
+
+### TC-FE-01
 ```
-1. Jenkins → BICAP-Pipeline → Build with Parameters
-2. QA_SCOPE = frontend
-3. QA_FAILURE_SCENARIO = frontend_a
-4. Build
+QA_SCOPE = frontend
+QA_FAILURE_SCENARIO = frontend_a
 ```
 
-### Test TC-FE-02: Shipping Manager Web Bug
+### TC-FE-02
 ```
-1. Jenkins → BICAP-Pipeline → Build with Parameters
-2. QA_SCOPE = frontend
-3. QA_FAILURE_SCENARIO = frontend_b
-4. Build
+QA_SCOPE = frontend
+QA_FAILURE_SCENARIO = frontend_b
 ```
 
-### Test TC-BE-01: Admin Service Bug
+### TC-FE-03
 ```
-1. Jenkins → BICAP-Pipeline → Build with Parameters
-2. QA_SCOPE = backend
-3. QA_FAILURE_SCENARIO = backend_a
-4. Build
+QA_SCOPE = frontend
+QA_FAILURE_SCENARIO = frontend_c
 ```
 
-### Test TC-BE-02: Shipping Manager Service Bug
+### TC-FE-04
 ```
-1. Jenkins → BICAP-Pipeline → Build with Parameters
-2. QA_SCOPE = backend
-3. QA_FAILURE_SCENARIO = backend_b
-4. Build
+QA_SCOPE = frontend
+QA_FAILURE_SCENARIO = frontend_d
+```
+
+### TC-FE-05
+```
+QA_SCOPE = frontend
+QA_FAILURE_SCENARIO = frontend_e
+```
+
+### TC-BE-01
+```
+QA_SCOPE = backend
+QA_FAILURE_SCENARIO = backend_a
+```
+
+### TC-BE-02
+```
+QA_SCOPE = backend
+QA_FAILURE_SCENARIO = backend_b
+```
+
+### TC-BE-03
+```
+QA_SCOPE = backend
+QA_FAILURE_SCENARIO = backend_c
+```
+
+### TC-BE-04
+```
+QA_SCOPE = backend
+QA_FAILURE_SCENARIO = backend_d
 ```
 
 ---
 
-## 4. KẾT QUẢ MONG ĐỢI
+## 5. SERVICE DETECTION LOGIC
 
-### Jira Bug Fields
-
-| Field | Expected Value |
-|-------|----------------|
-| Summary | `[<SERVICE_NAME>] <STAGE_NAME> failed` |
-| Module | frontend / backend |
-| Labels | `automated-bug`, `module-<service>`, `qa-fix` |
-| Assignee | Đúng thành viên |
-| Branch | `bugfix/<module>/<JIRA-KEY>-<description>` |
-
-### Expected Assignees
-
-| Test Case | Assignee |
-|-----------|----------|
-| frontend_a | Member 2 - Frontend Developer A |
-| frontend_b | Member 3 - Frontend Developer B |
-| backend_a | Member 4 - Backend Developer A |
-| backend_b | Member 5 - Backend Developer B |
+| Error Pattern | Service Detected |
+|---------------|------------------|
+| "guest" | guest-web |
+| "farm" | farm-management-web |
+| "admin" + "web" | admin-web |
+| "retailer" | retailer-web |
+| "shipping" + "manager" | shipping-manager-web |
+| "auth" | auth-service |
+| "admin" + "service" | admin-service |
+| "shipping" + "service" | shipping-manager-service |
+| "dashboard" | admin-service |
+| "vehicle" | shipping-manager-service |
+| "driver" | shipping-manager-service |
+| "user" | admin-service |
+| "login" / "register" | guest-web |
+| "health" | farm-management-web |
+| "token" | auth-service |
 
 ---
 
-## 5. VERIFICATION CHECKLIST
+## 6. VERIFICATION CHECKLIST
 
-Sau khi chạy test, kiểm tra:
+Sau khi chạy test:
 
 - [ ] Jira bug được tạo
 - [ ] Summary đúng format: `[SERVICE] Stage failed`
 - [ ] Module đúng: frontend / backend
-- [ ] Labels đầy đủ: `automated-bug`, `module-<service>`, `qa-fix`
+- [ ] Labels: `automated-bug`, `module-<service>`, `qa-fix`
 - [ ] Assignee đúng thành viên
 - [ ] Suggested fix branch đúng format
 - [ ] Error details có trong description

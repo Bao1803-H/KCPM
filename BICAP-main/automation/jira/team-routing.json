@@ -12,11 +12,31 @@
       "displayName": "Member 3 - Frontend Developer B",
       "accountId": "712020:27c155c5-ed41-4f00-a15d-fa349de46fb0"
     },
+    "frontend_c": {
+      "displayName": "Member 2 - Frontend Developer A",
+      "accountId": "712020:fa123bb1-1901-490d-a7a5-541d4f824c68"
+    },
+    "frontend_d": {
+      "displayName": "Member 3 - Frontend Developer B",
+      "accountId": "712020:27c155c5-ed41-4f00-a15d-fa349de46fb0"
+    },
+    "frontend_e": {
+      "displayName": "Member 2 - Frontend Developer A",
+      "accountId": "712020:fa123bb1-1901-490d-a7a5-541d4f824c68"
+    },
     "backend_a": {
       "displayName": "Member 4 - Backend Developer A",
       "accountId": "61b0a9e86d002b006b43a986"
     },
     "backend_b": {
+      "displayName": "Member 5 - Backend Developer B",
+      "accountId": "712020:ad84cd1c-7523-4911-9efa-31dbf029442d"
+    },
+    "backend_c": {
+      "displayName": "Member 4 - Backend Developer A",
+      "accountId": "61b0a9e86d002b006b43a986"
+    },
+    "backend_d": {
       "displayName": "Member 5 - Backend Developer B",
       "accountId": "712020:ad84cd1c-7523-4911-9efa-31dbf029442d"
     },
@@ -51,49 +71,49 @@
       "labels": ["infra", "qa-fix"]
     },
     "guest-web": {
-      "assigneePool": ["frontend_a", "frontend_b"],
+      "assigneePool": ["frontend_a", "frontend_b", "frontend_c", "frontend_e"],
       "assignmentStrategy": "least_open_random",
       "branchPrefix": "bugfix/frontend",
       "labels": ["frontend", "guest-web", "qa-fix"]
     },
     "farm-management-web": {
-      "assigneePool": ["frontend_a", "frontend_b"],
+      "assigneePool": ["frontend_a", "frontend_b", "frontend_d", "frontend_e"],
       "assignmentStrategy": "least_open_random",
       "branchPrefix": "bugfix/frontend",
       "labels": ["frontend", "farm-management-web", "qa-fix"]
     },
     "admin-web": {
-      "assigneePool": ["frontend_a", "frontend_b"],
+      "assigneePool": ["frontend_a", "frontend_b", "frontend_c", "frontend_d"],
       "assignmentStrategy": "least_open_random",
       "branchPrefix": "bugfix/frontend",
       "labels": ["frontend", "admin-web", "qa-fix"]
     },
     "retailer-web": {
-      "assigneePool": ["frontend_a", "frontend_b"],
+      "assigneePool": ["frontend_a", "frontend_b", "frontend_d", "frontend_e"],
       "assignmentStrategy": "least_open_random",
       "branchPrefix": "bugfix/frontend",
       "labels": ["frontend", "retailer-web", "qa-fix"]
     },
     "shipping-manager-web": {
-      "assigneePool": ["frontend_a", "frontend_b"],
+      "assigneePool": ["frontend_a", "frontend_b", "frontend_c", "frontend_d"],
       "assignmentStrategy": "least_open_random",
       "branchPrefix": "bugfix/frontend",
       "labels": ["frontend", "shipping-manager-web", "qa-fix"]
     },
     "auth-service": {
-      "assigneePool": ["backend_a", "backend_b"],
+      "assigneePool": ["backend_a", "backend_b", "backend_c", "backend_d"],
       "assignmentStrategy": "least_open_random",
       "branchPrefix": "bugfix/backend",
       "labels": ["backend", "auth-service", "qa-fix"]
     },
     "admin-service": {
-      "assigneePool": ["backend_a", "backend_b"],
+      "assigneePool": ["backend_a", "backend_b", "backend_c", "backend_d"],
       "assignmentStrategy": "least_open_random",
       "branchPrefix": "bugfix/backend",
       "labels": ["backend", "admin-service", "qa-fix"]
     },
     "shipping-manager-service": {
-      "assigneePool": ["backend_a", "backend_b"],
+      "assigneePool": ["backend_a", "backend_b", "backend_c", "backend_d"],
       "assignmentStrategy": "least_open_random",
       "branchPrefix": "bugfix/backend",
       "labels": ["backend", "shipping-manager-service", "qa-fix"]
