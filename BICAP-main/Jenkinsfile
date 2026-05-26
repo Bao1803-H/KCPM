@@ -240,7 +240,9 @@ pipeline {
         stage('Scope Summary') {
             steps {
                 script {
-                    def scope = params.QA_SCOPE?.toString()
+                    def scope = params.get('QA_SCOPE', 'all')?.toString()?.trim() ?: 'all'
+
+                    echo "DEBUG scope value: '${scope}', equals frontend: ${scope == 'frontend'}"
 
                     if (scope == 'frontend') {
                         env.QA_TARGETS = 'http://127.0.0.1:3405/login http://127.0.0.1:3402/health http://127.0.0.1:3401/login http://127.0.0.1:3400/login http://127.0.0.1:3403/login'
@@ -270,7 +272,7 @@ pipeline {
                         env.QA_SERVICE_LIST = 'full-stack'
                     }
 
-                    echo "Selected QA scope: ${params.QA_SCOPE}"
+                    echo "Selected QA scope: ${scope}"
                     echo "Compose deployment: ${env.QA_DEPLOY_COMMAND}"
                     echo "Compose service set: ${env.QA_SERVICE_LIST}"
                     echo "Wait targets: ${env.QA_TARGETS}"
