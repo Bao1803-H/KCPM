@@ -58,9 +58,41 @@ def ensureDir(String path) {
 def reportJiraBug(String module, String stageName, String reportFile) {
     def escapedStage = stageName.replace('"', '\\"')
     def escapedFile = reportFile.replace('"', '\\"')
+    def escapedModule = module.replace('"', '\\"')
     inProjectDir {
-        runCmd("node automation/jira/create-jira-bug.mjs --module ${module} --stage \"${escapedStage}\" --descriptionFile \"${escapedFile}\"")
+        runCmd("node automation/jira/create-jira-bug.mjs --module ${escapedModule} --stage \"${escapedStage}\" --descriptionFile \"${escapedFile}\"")
     }
+}
+
+String detectServiceFromError(String errorText) {
+    if (!errorText) {
+        return 'integration'
+    }
+
+    def lowerError = errorText.toLowerCase()
+
+    // Frontend services detection
+    if (lowerError.contains('guest')) return 'guest-web'
+    if (lowerError.contains('farm')) return 'farm-management-web'
+    if (lowerError.contains('admin') && lowerError.contains('web')) return 'admin-web'
+    if (lowerError.contains('retailer')) return 'retailer-web'
+    if (lowerError.contains('shipping') && lowerError.contains('manager')) return 'shipping-manager-web'
+
+    // Backend services detection
+    if (lowerError.contains('auth')) return 'auth-service'
+    if (lowerError.contains('admin') && lowerError.contains('service')) return 'admin-service'
+    if (lowerError.contains('shipping') && lowerError.contains('service')) return 'shipping-manager-service'
+    if (lowerError.contains('dashboard')) return 'admin-service'
+    if (lowerError.contains('vehicle')) return 'shipping-manager-service'
+    if (lowerError.contains('driver')) return 'shipping-manager-service'
+    if (lowerError.contains('user')) return 'admin-service'
+
+    // Generic fallback based on error patterns
+    if (lowerError.contains('login') || lowerError.contains('register')) return 'guest-web'
+    if (lowerError.contains('health')) return 'farm-management-web'
+    if (lowerError.contains('token')) return 'auth-service'
+
+    return 'integration'
 }
 
 def transitionJiraIssue(String issueKey, String statusName) {
@@ -258,6 +290,8 @@ pipeline {
                             runCmd(env.QA_DEPLOY_COMMAND)
                         }
                     } catch (err) {
+                        def errorMsg = err.toString()
+                        def detectedModule = detectServiceFromError(errorMsg)
                         writeProjectFile(
                             "${env.QA_REPORT_DIR}/deploy-failure.txt",
                             """Stage: Deploy Test Stack
@@ -266,7 +300,7 @@ Branch: ${env.BRANCH_NAME ?: 'n/a'}
 Error: ${err}
 """
                         )
-                        reportJiraBug(env.QA_SCOPE_MODULE ?: 'infra', 'Deploy Test Stack', "${env.QA_REPORT_DIR}/deploy-failure.txt")
+                        reportJiraBug(detectedModule, 'Deploy Test Stack', "${env.QA_REPORT_DIR}/deploy-failure.txt")
                         throw err
                     }
                 }
@@ -281,6 +315,8 @@ Error: ${err}
                             runCmd("node qa/scripts/wait-for-targets.mjs ${env.QA_TARGETS}")
                         }
                     } catch (err) {
+                        def errorMsg = err.toString()
+                        def detectedModule = detectServiceFromError(errorMsg)
                         writeProjectFile(
                             "${env.QA_REPORT_DIR}/wait-targets-failure.txt",
                             """Stage: Wait For Targets
@@ -290,7 +326,7 @@ Targets: ${env.QA_TARGETS}
 Error: ${err}
 """
                         )
-                        reportJiraBug(env.QA_SCOPE_MODULE ?: 'integration', 'Wait For Targets', "${env.QA_REPORT_DIR}/wait-targets-failure.txt")
+                        reportJiraBug(detectedModule, 'Wait For Targets', "${env.QA_REPORT_DIR}/wait-targets-failure.txt")
                         throw err
                     }
                 }
@@ -310,16 +346,19 @@ Error: ${err}
                             runCmd('docker compose ps')
                         }
                     } catch (err) {
+                        def errorMsg = err.toString()
+                        def detectedModule = detectServiceFromError(errorMsg)
                         writeProjectFile(
                             "${env.QA_REPORT_DIR}/infra-failure.txt",
                             """Stage: Infrastructure QA
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
 Selected scope: ${params.QA_SCOPE}
+Detected Module: ${detectedModule}
 Error: ${err}
 """
                         )
-                        reportJiraBug('infra', 'Infrastructure QA', "${env.QA_REPORT_DIR}/infra-failure.txt")
+                        reportJiraBug(detectedModule, 'Infrastructure QA', "${env.QA_REPORT_DIR}/infra-failure.txt")
                         throw err
                     }
                 }
@@ -334,27 +373,36 @@ Error: ${err}
             }
             steps {
                 script {
-                    try {
-                        inProjectDir {
-                            withEnv(["QA_FAILURE_SCENARIO=${params.QA_FAILURE_SCENARIO}"]) {
-                                runNpm('install --prefix clients/web-app/shipping-manager-web')
-                                runNpm('run build --prefix clients/web-app/shipping-manager-web')
-                                runNpm('install --prefix clients/web-app/farm-management-web')
-                                runNpm('run test:smoke --prefix clients/web-app/farm-management-web')
-                                runCmd('node qa/scripts/frontend-smoke.mjs')
-                            }
-                        }
-                    } catch (err) {
-                        writeProjectFile(
-                            "${env.QA_REPORT_DIR}/frontend-failure.txt",
-                            """Stage: Frontend QA
+                    def services = ['guest-web', 'retailer-web', 'admin-web', 'farm-management-web', 'shipping-manager-web']
+                    def failedServices = []
+
+                    inProjectDir {
+                        runNpm('install --prefix clients/web-app/shipping-manager-web')
+                        runNpm('run build --prefix clients/web-app/shipping-manager-web')
+                        runNpm('install --prefix clients/web-app/farm-management-web')
+                        runNpm('run test:smoke --prefix clients/web-app/farm-management-web')
+
+                        // Run each frontend check individually
+                        try {
+                            runCmd('node qa/scripts/frontend-smoke.mjs')
+                        } catch (err) {
+                            // Parse which service failed from error output
+                            def errorMsg = err.toString()
+                            def failedService = detectServiceFromError(errorMsg)
+                            failedServices << failedService
+
+                            writeProjectFile(
+                                "${env.QA_REPORT_DIR}/frontend-failure.txt",
+                                """Stage: Frontend QA
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
+Failed Service: ${failedService}
 Error: ${err}
 """
-                        )
-                        reportJiraBug('frontend', 'Frontend QA', "${env.QA_REPORT_DIR}/frontend-failure.txt")
-                        throw err
+                            )
+                            reportJiraBug(failedService, 'Frontend QA', "${env.QA_REPORT_DIR}/frontend-failure.txt")
+                            throw err
+                        }
                     }
                 }
             }
@@ -368,23 +416,28 @@ Error: ${err}
             }
             steps {
                 script {
-                    try {
-                        inProjectDir {
+                    inProjectDir {
+                        try {
                             withEnv(["QA_FAILURE_SCENARIO=${params.QA_FAILURE_SCENARIO}"]) {
                                 runNpx('--yes newman run qa/postman/bicap-api-smoke.postman_collection.json -e qa/postman/local.postman_environment.json --reporters cli,junit --reporter-junit-export qa/reports/newman-results.xml')
                             }
-                        }
-                    } catch (err) {
-                        writeProjectFile(
-                            "${env.QA_REPORT_DIR}/backend-failure.txt",
-                            """Stage: Backend QA
+                        } catch (err) {
+                            // Parse Newman output to identify failed service
+                            def errorMsg = err.toString()
+                            def failedService = detectServiceFromError(errorMsg)
+
+                            writeProjectFile(
+                                "${env.QA_REPORT_DIR}/backend-failure.txt",
+                                """Stage: Backend QA
 Build: ${env.BUILD_URL ?: 'n/a'}
 Branch: ${env.BRANCH_NAME ?: 'n/a'}
+Failed Service: ${failedService}
 Error: ${err}
 """
-                        )
-                        reportJiraBug('backend', 'Backend QA', "${env.QA_REPORT_DIR}/backend-failure.txt")
-                        throw err
+                            )
+                            reportJiraBug(failedService, 'Backend QA', "${env.QA_REPORT_DIR}/backend-failure.txt")
+                            throw err
+                        }
                     }
                 }
             }

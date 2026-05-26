@@ -362,8 +362,32 @@ async function findReusableIssue({ jiraConfig, authHeader, branchName, labels, d
 }
 
 async function createIssue({ jiraConfig, routingConfig, moduleName, stageName, descriptionText }) {
-    const moduleConfig = routingConfig.moduleRouting[moduleName]
-        || routingConfig.moduleRouting[routingConfig.defaultModule];
+    // Determine the actual module config to use
+    let moduleConfig = routingConfig.moduleRouting[moduleName];
+
+    // If module not found in routing config, try to find a suitable fallback
+    if (!moduleConfig) {
+        // Check if it's a frontend service by pattern
+        const frontendPatterns = ['web', 'guest', 'farm', 'admin', 'retailer', 'shipping'];
+        const isFrontend = frontendPatterns.some(pattern => moduleName.includes(pattern));
+
+        if (isFrontend) {
+            moduleConfig = routingConfig.moduleRouting['frontend'];
+        }
+
+        // Check if it's a backend service by pattern
+        const backendPatterns = ['service', 'auth'];
+        const isBackend = backendPatterns.some(pattern => moduleName.includes(pattern));
+
+        if (isBackend && !moduleConfig) {
+            moduleConfig = routingConfig.moduleRouting['backend'];
+        }
+
+        // Fallback to default module
+        if (!moduleConfig) {
+            moduleConfig = routingConfig.moduleRouting[routingConfig.defaultModule];
+        }
+    }
 
     const jobName = process.env.JOB_NAME || 'local-run';
     const buildNumber = process.env.BUILD_NUMBER || 'manual';

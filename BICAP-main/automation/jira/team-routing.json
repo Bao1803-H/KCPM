@@ -49,6 +49,54 @@
       "assignmentStrategy": "fixed_owner",
       "branchPrefix": "bugfix/infra",
       "labels": ["infra", "qa-fix"]
+    },
+    "guest-web": {
+      "assigneePool": ["frontend_a", "frontend_b"],
+      "assignmentStrategy": "least_open_random",
+      "branchPrefix": "bugfix/frontend",
+      "labels": ["frontend", "guest-web", "qa-fix"]
+    },
+    "farm-management-web": {
+      "assigneePool": ["frontend_a", "frontend_b"],
+      "assignmentStrategy": "least_open_random",
+      "branchPrefix": "bugfix/frontend",
+      "labels": ["frontend", "farm-management-web", "qa-fix"]
+    },
+    "admin-web": {
+      "assigneePool": ["frontend_a", "frontend_b"],
+      "assignmentStrategy": "least_open_random",
+      "branchPrefix": "bugfix/frontend",
+      "labels": ["frontend", "admin-web", "qa-fix"]
+    },
+    "retailer-web": {
+      "assigneePool": ["frontend_a", "frontend_b"],
+      "assignmentStrategy": "least_open_random",
+      "branchPrefix": "bugfix/frontend",
+      "labels": ["frontend", "retailer-web", "qa-fix"]
+    },
+    "shipping-manager-web": {
+      "assigneePool": ["frontend_a", "frontend_b"],
+      "assignmentStrategy": "least_open_random",
+      "branchPrefix": "bugfix/frontend",
+      "labels": ["frontend", "shipping-manager-web", "qa-fix"]
+    },
+    "auth-service": {
+      "assigneePool": ["backend_a", "backend_b"],
+      "assignmentStrategy": "least_open_random",
+      "branchPrefix": "bugfix/backend",
+      "labels": ["backend", "auth-service", "qa-fix"]
+    },
+    "admin-service": {
+      "assigneePool": ["backend_a", "backend_b"],
+      "assignmentStrategy": "least_open_random",
+      "branchPrefix": "bugfix/backend",
+      "labels": ["backend", "admin-service", "qa-fix"]
+    },
+    "shipping-manager-service": {
+      "assigneePool": ["backend_a", "backend_b"],
+      "assignmentStrategy": "least_open_random",
+      "branchPrefix": "bugfix/backend",
+      "labels": ["backend", "shipping-manager-service", "qa-fix"]
     }
   }
 }
