@@ -44,8 +44,12 @@ async function main() {
         console.log(`Smoke passed: ${check.name}`);
     }
 
+    if (failureScenario === 'frontend_a') {
+        throw new Error('Frontend scenario frontend_a: Admin web login page missing CSRF token in form');
+    }
+
     if (failureScenario === 'frontend_b') {
-        throw new Error('Frontend scenario frontend_b: shipping manager login page missing required meta viewport tag');
+        throw new Error('Frontend scenario frontend_b: Shipping manager login page missing required meta viewport tag');
     }
 }
 
