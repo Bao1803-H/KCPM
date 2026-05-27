@@ -40,6 +40,12 @@
 | ERR-BE-01 | `backend_c` | Auth service token refresh endpoint returns 500 | auth-service | auth-service | Member 4/5 |
 | ERR-BE-02 | `backend_d` | User list missing pagination metadata | admin-service | admin-service | Member 4/5 |
 
+### Lỗi mới - Infrastructure
+
+| Lỗi ID | Jira | Error Message | Service | Port | Root Cause | Assignee |
+|---------|------|---------------|---------|------|------------|----------|
+| ERR-INT-01 | KCPM-33 | Wait For Targets - ECONNREFUSED | auth-service | 8088 | Service không accept connections | Member 6 |
+
 ---
 
 ## 3. TẤT CẢ QA_FAILURE_SCENARIO
