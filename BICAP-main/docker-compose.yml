@@ -10,24 +10,18 @@ services:
     depends_on:
       - kong-gateway
       - shipping-manager-service
+
     environment:
-      # Expo configuration
       - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
       - REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
       - NODE_ENV=development
-      # API Gateway URL (sẽ được mobile app sử dụng)
-      # Lưu ý: Mobile app cần dùng IP LAN của host machine, không phải container name
       - API_GATEWAY_URL=http://kong-gateway:8000
       - EXPO_PUBLIC_API_URL=http://kong-gateway:8000
+
     ports:
-      # Metro Bundler - React Native packager
       - "8097:8081"
-      # Expo Dev Server
-      - "19000:19000"
-      # Expo Packager  
-      - "19001:19001"
-      # Expo DevTools (Web UI) - Truy cập http://localhost:19002 để quét QR
-      - "19002:19002"
+
+
     networks:
       - bicap-global-net
     # Tự động restart nếu crash
