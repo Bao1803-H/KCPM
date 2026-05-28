@@ -78,7 +78,7 @@ public class JwtUtils {
             try {
                 Jwts.parserBuilder().setSigningKey(getSignInKey(secret)).build().parseClaimsJws(authToken);
                 return true;
-            } catch (MalformedJwtException | ExpiredJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+            } catch (JwtException | IllegalArgumentException e) {
                 // try next key
             }
         }

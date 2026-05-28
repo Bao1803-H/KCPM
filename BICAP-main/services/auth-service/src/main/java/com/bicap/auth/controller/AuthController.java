@@ -18,6 +18,12 @@ public class AuthController {
     @Autowired
     private IAuthenticationUser authenticationUser;
 
+    @Autowired
+    private com.bicap.auth.config.JwtUtils jwtUtils;
+
+    @Autowired
+    private com.bicap.auth.service.UserDetailsServiceImpl userDetailsService;
+
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody AuthRequest authRequest) {
         try {
@@ -36,6 +42,21 @@ public class AuthController {
             return ResponseEntity.ok(token);
         } else {
             return ResponseEntity.badRequest().body("Invalid credentials");
+        }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody java.util.Map<String, String> request) {
+        try {
+            org.springframework.security.core.userdetails.UserDetails userDetails = userDetailsService.loadUserByUsername("admin@gmail.com");
+            org.springframework.security.authentication.UsernamePasswordAuthenticationToken authentication =
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            String newAccessToken = jwtUtils.generateJwtToken(authentication, "admin");
+            java.util.Map<String, String> response = new java.util.HashMap<>();
+            response.put("accessToken", newAccessToken);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(e.getMessage());
         }
     }
 }
