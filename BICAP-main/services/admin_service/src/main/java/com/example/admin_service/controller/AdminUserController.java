@@ -30,12 +30,24 @@ public class AdminUserController {
     }
     //API: gọi phân trang user
     @GetMapping
-    public ResponseEntity<Page<UserResponseDTO>> getUsers(
+    public ResponseEntity<java.util.Map<String, Object>> getUsers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(name = "limit", defaultValue = "10") int limit
     ) {
-        return ResponseEntity.ok(adminUserService.getUsersWithFilter(keyword, role, page, size));
+        org.springframework.data.domain.Page<UserResponseDTO> userPage = 
+            adminUserService.getUsersWithFilter(keyword, role, page, limit);
+            
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("content", userPage.getContent());
+        
+        java.util.Map<String, Object> meta = new java.util.HashMap<>();
+        meta.put("total", userPage.getTotalElements());
+        meta.put("page", page);
+        meta.put("limit", limit);
+        
+        response.put("meta", meta);
+        return ResponseEntity.ok(response);
     }
 }

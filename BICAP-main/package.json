@@ -13,5 +13,8 @@
     "qa:frontend-smoke": "node qa/scripts/frontend-smoke.mjs",
     "jira:create-bug": "node automation/jira/create-jira-bug.mjs",
     "jira:update-status": "node automation/jira/update-jira-status.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3"
   }
 }

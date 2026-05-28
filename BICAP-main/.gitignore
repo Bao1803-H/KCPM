@@ -1,1 +1,19 @@
 automation/jira/.assignment-state.json
+# Chặn toàn bộ node_modules ở mọi cấp
+node_modules/
+
+# Chặn các file log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Chặn các thư mục build/output (nếu có)
+dist/
+build/
+.next/
+out/
+
+# Chặn file cấu hình cá nhân của IDE
+.idea/
+.vscode/
+*.swp

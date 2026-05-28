@@ -123,6 +123,8 @@ services:
       - "3308:3306"
     networks:
       - bicap-global-net
+    volumes:
+      - ./database/farm-production-db/bicap_farm_db.sql:/docker-entrypoint-initdb.d/01_bicap_farm_db.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
@@ -173,6 +175,8 @@ services:
       - "3309:3306"
     networks:
       - bicap-global-net
+    volumes:
+      - ./database/trading-order-db/bicap_order_db.sql:/docker-entrypoint-initdb.d/01_bicap_order_db.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
@@ -504,6 +508,8 @@ services:
       - "3312:3306"
     networks:
       - bicap-global-net
+    volumes:
+      - ./database/image-storage-db/image_storage_db.sql:/docker-entrypoint-initdb.d/01_image_storage_db.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
