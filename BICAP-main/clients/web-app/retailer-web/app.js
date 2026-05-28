@@ -9,7 +9,7 @@ const auth = require("./src/auth/authentication");
 const retailerController = require("./src/retailer/retailer.controller");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 /* ================= VIEW ENGINE ================= */
 app.set("view engine", "ejs");
