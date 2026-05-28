@@ -24,7 +24,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 
 const app = express();
-const port = 3003;
+const port = process.env.PORT || 3003;
 
 // Per-role JWT secret for shipping manager (must match auth-service bicap.app.jwtSecret.shippingManager)
 const JWT_SECRET_STRING = process.env.JWT_SECRET_SHIPPING_MANAGER || 'YmljYXAtand0LXNoaXBwaW5nLW1nci1yb2xlLXNlY3JldC1rZXkhISEhIQ==';
