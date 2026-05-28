@@ -344,7 +344,9 @@ Error: ${err}
                             // Check Docker containers status
                             runCmd("docker compose ps")
                             // Run wait for targets with longer timeout
-                            runCmd("QA_WAIT_TIMEOUT_MS=300000 node qa/scripts/wait-for-targets.mjs ${targets}")
+                            withEnv(["QA_WAIT_TIMEOUT_MS=300000"]) {
+                                runCmd("node qa/scripts/wait-for-targets.mjs ${targets}")
+                            }
                         }
                     } catch (err) {
                         def errorMsg = err.toString()
