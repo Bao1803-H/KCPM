@@ -15,7 +15,7 @@ const APPLICATION_ROLE = 'ROLE_ADMIN';
 const CLIENT_ID = 'admin';
 const COOKIE_NAME = 'admin_token';
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 app.set("views", path.join(__dirname, "..", "front-end", "template"));
 app.set("view engine", "ejs");
