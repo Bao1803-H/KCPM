@@ -10,7 +10,11 @@ def runCmd(String command) {
 }
 
 def inProjectDir(Closure body) {
-    dir('BICAP-main') {
+    if (fileExists('BICAP-main')) {
+        dir('BICAP-main') {
+            body()
+        }
+    } else {
         body()
     }
 }
