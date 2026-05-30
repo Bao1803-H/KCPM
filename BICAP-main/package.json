@@ -11,10 +11,14 @@
     "start:guest": "npm start --workspace=guest-web",
     "qa:wait": "node qa/scripts/wait-for-targets.mjs",
     "qa:frontend-smoke": "node qa/scripts/frontend-smoke.mjs",
+    "qa:playwright": "playwright test",
     "jira:create-bug": "node automation/jira/create-jira-bug.mjs",
     "jira:update-status": "node automation/jira/update-jira-status.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.43.0"
   }
 }
