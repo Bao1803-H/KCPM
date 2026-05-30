@@ -445,6 +445,25 @@ Error: ${err}
                             reportJiraBug(failedService, 'Frontend QA', "${env.QA_REPORT_DIR}/frontend-failure.txt")
                             throw err
                         }
+
+                        // Run Playwright E2E tests
+                        try {
+                            echo "Installing Playwright browser..."
+                            runNpx('playwright install chromium --with-deps')
+                            echo "Running Playwright E2E tests..."
+                            runNpm('run qa:playwright')
+                        } catch (err) {
+                            writeProjectFile(
+                                "${env.QA_REPORT_DIR}/frontend-e2e-failure.txt",
+                                """Stage: Frontend E2E QA (Playwright)
+Build: ${env.BUILD_URL ?: 'n/a'}
+Branch: ${env.BRANCH_NAME ?: 'n/a'}
+Error: ${err}
+"""
+                            )
+                            reportJiraBug('frontend', 'Frontend E2E QA', "${env.QA_REPORT_DIR}/frontend-e2e-failure.txt")
+                            throw err
+                        }
                     }
                 }
             }

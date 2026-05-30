@@ -4,9 +4,9 @@
   "description": "Shipping Manager Frontend - React App",
   "main": "src/index.js",
   "scripts": {
-    "start": "node -r dotenv/config ./node_modules/react-scripts/bin/react-scripts.js start dotenv_config_path=config/.env",
-    "build": "node -r dotenv/config ./node_modules/react-scripts/bin/react-scripts.js build dotenv_config_path=config/.env",
-    "test": "node -r dotenv/config ./node_modules/react-scripts/bin/react-scripts.js test dotenv_config_path=config/.env",
+    "start": "dotenv -e config/.env -- react-scripts start",
+    "build": "dotenv -e config/.env -- react-scripts build",
+    "test": "dotenv -e config/.env -- react-scripts test",
     "eject": "react-scripts eject",
     "server": "nodemon front-end/template/authentication.js"
   },
@@ -28,7 +28,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.0",
-    "react-scripts": "^0.0.0"
+    "react-scripts": "^5.0.1"
   },
   "eslintConfig": {
     "extends": [
